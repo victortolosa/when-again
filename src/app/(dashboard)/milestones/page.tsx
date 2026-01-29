@@ -7,7 +7,7 @@ import { TrackerCard } from '@/components/dashboard/TrackerCard';
 import { TrackerForm } from '@/components/dashboard/TrackerForm';
 import { useTrackers, useCreateTracker, useUpdateTracker, useDeleteTracker } from '@/hooks/useTrackers';
 import { Tracker, TrackerFormData } from '@/lib/types';
-import { compressMilestoneImage, uploadMilestoneImage, deleteMilestoneImage } from '@/lib/storage';
+import { uploadMilestoneImage, deleteMilestoneImage } from '@/lib/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/components/layout/AppShell';
 
@@ -57,20 +57,24 @@ export default function MilestonesPage() {
                 );
             });
 
-            // If file provided: compress → upload → update tracker with image_url
+            // If file provided: upload → update tracker with image_url
             if (file && user) {
-                const compressed = await compressMilestoneImage(file);
-                const compressedFile = new File([compressed], 'milestone.jpg', { type: 'image/jpeg' });
-                const imageUrl = await uploadMilestoneImage(compressedFile, user.uid, trackerId);
-                await new Promise<void>((resolve, reject) => {
-                    updateTracker.mutate(
-                        { id: trackerId, data: { image_url: imageUrl } },
-                        {
-                            onError: reject,
-                            onSuccess: () => resolve(),
-                        }
-                    );
-                });
+                const imageUrl = await uploadMilestoneImage(file, user.uid, trackerId);
+                try {
+                    await new Promise<void>((resolve, reject) => {
+                        updateTracker.mutate(
+                            { id: trackerId, data: { image_url: imageUrl } },
+                            {
+                                onError: reject,
+                                onSuccess: () => resolve(),
+                            }
+                        );
+                    });
+                } catch (dbError) {
+                    // Cleanup orphan image if DB update failed
+                    await deleteMilestoneImage(imageUrl);
+                    throw dbError;
+                }
             }
 
             console.log('Milestone created successfully');
@@ -91,11 +95,9 @@ export default function MilestonesPage() {
             let imageUrl = data.image_url;
             const oldImageUrl = editingTracker.image_url;
 
-            // If new file: compress → upload → delete old image if exists
+            // If new file: upload → delete old image if exists
             if (file && user) {
-                const compressed = await compressMilestoneImage(file);
-                const compressedFile = new File([compressed], 'milestone.jpg', { type: 'image/jpeg' });
-                imageUrl = await uploadMilestoneImage(compressedFile, user.uid, editingTracker.id);
+                imageUrl = await uploadMilestoneImage(file, user.uid, editingTracker.id);
 
                 if (oldImageUrl) {
                     await deleteMilestoneImage(oldImageUrl);
@@ -108,15 +110,23 @@ export default function MilestonesPage() {
             }
 
             // Update tracker with new/removed image_url
-            await new Promise<void>((resolve, reject) => {
-                updateTracker.mutate(
-                    { id: editingTracker.id, data: { ...data, image_url: imageUrl } },
-                    {
-                        onError: reject,
-                        onSuccess: () => resolve(),
-                    }
-                );
-            });
+            try {
+                await new Promise<void>((resolve, reject) => {
+                    updateTracker.mutate(
+                        { id: editingTracker.id, data: { ...data, image_url: imageUrl } },
+                        {
+                            onError: reject,
+                            onSuccess: () => resolve(),
+                        }
+                    );
+                });
+            } catch (dbError) {
+                // If we JUST uploaded a new image and the DB update failed, clean it up
+                if (file && user && imageUrl) {
+                    await deleteMilestoneImage(imageUrl);
+                }
+                throw dbError;
+            }
 
             console.log('Milestone updated successfully');
             setEditingTracker(null);
@@ -178,6 +188,7 @@ export default function MilestonesPage() {
                                 category: editingTracker.category || '',
                                 color_theme: editingTracker.color_theme,
                                 image_url: editingTracker.image_url,
+                                display_units: editingTracker.display_units,
                             }}
                             open={true}
                             onOpenChange={(open) => !open && setEditingTracker(null)}

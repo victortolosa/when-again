@@ -1,0 +1,100 @@
+'use client';
+
+import React, { useState, useCallback } from 'react';
+import Cropper from 'react-easy-crop';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import getCroppedImg from '@/lib/utils/cropUtils';
+
+interface ImageCropperProps {
+    image: string;
+    aspect?: number;
+    onCropComplete: (croppedFile: File) => void;
+    onCancel: () => void;
+    open: boolean;
+}
+
+const ImageCropper: React.FC<ImageCropperProps> = ({
+    image,
+    aspect = 16 / 9,
+    onCropComplete,
+    onCancel,
+    open,
+}) => {
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+
+    const onCropChange = (crop: { x: number; y: number }) => {
+        setCrop(crop);
+    };
+
+    const onZoomChange = (zoom: number) => {
+        setZoom(zoom);
+    };
+
+    const onCropCompleteInternal = useCallback(
+        (_croppedArea: any, croppedAreaPixels: any) => {
+            setCroppedAreaPixels(croppedAreaPixels);
+        },
+        []
+    );
+
+    const handleSave = async () => {
+        try {
+            const croppedBlob = await getCroppedImg(
+                image,
+                croppedAreaPixels,
+                0,
+                { horizontal: false, vertical: false },
+                1920, // maxWidth
+                0.85 // quality
+            );
+            if (croppedBlob) {
+                const file = new File([croppedBlob], 'cropped-image.jpg', {
+                    type: 'image/jpeg',
+                });
+                onCropComplete(file);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
+            <DialogContent className="sm:max-w-[600px] h-[80vh] flex flex-col p-0 overflow-hidden">
+                <DialogHeader className="p-6 pb-2">
+                    <DialogTitle>Crop Image</DialogTitle>
+                </DialogHeader>
+                <div className="relative flex-1 bg-black/5 min-h-[300px]">
+                    <Cropper
+                        image={image}
+                        crop={crop}
+                        zoom={zoom}
+                        aspect={aspect}
+                        onCropChange={onCropChange}
+                        onCropComplete={onCropCompleteInternal}
+                        onZoomChange={onZoomChange}
+                    />
+                </div>
+                <DialogFooter className="p-6 gap-2 bg-background border-t">
+                    <Button variant="outline" onClick={onCancel} className="flex-1">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleSave} className="flex-1">
+                        Apply Crop
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+export default ImageCropper;

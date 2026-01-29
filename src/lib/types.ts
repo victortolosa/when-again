@@ -10,6 +10,7 @@ export interface Tracker {
     category: string;
     color_theme: string;
     image_url?: string;
+    display_units?: ('years' | 'months' | 'days')[];
     created_at: Timestamp;
     updated_at: Timestamp;
 }
@@ -21,6 +22,7 @@ export interface TrackerFormData {
     category: string;
     color_theme: string;
     image_url?: string;
+    display_units?: ('years' | 'months' | 'days')[];
 }
 
 // Event Types - Items that repeat based on recurrence rules

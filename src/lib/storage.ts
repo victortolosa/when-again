@@ -5,6 +5,7 @@ import {
     deleteObject,
 } from 'firebase/storage';
 import { getFirebaseStorage } from '@/lib/firebase';
+import heic2any from 'heic2any';
 
 /**
  * Upload an image to Firebase Storage
@@ -20,21 +21,57 @@ export async function uploadEntryImage(
 ): Promise<string> {
     const storage = getFirebaseStorage();
 
+    // Convert HEIC to JPEG if needed
+    const processedFile = await convertToJpegIfHeic(file);
+
     // Create a unique filename
     const dateString = date.toISOString().split('T')[0];
-    const extension = file.name.split('.').pop() || 'jpg';
+    const extension = processedFile.name.split('.').pop() || 'jpg';
     const filename = `${dateString}-${Date.now()}.${extension}`;
 
     // Create the storage reference
     const storageRef = ref(storage, `entries/${userId}/${filename}`);
 
     // Upload the file
-    const snapshot = await uploadBytes(storageRef, file, {
-        contentType: file.type,
+    const snapshot = await uploadBytes(storageRef, processedFile, {
+        contentType: processedFile.type,
+        cacheControl: 'public,max-age=31536000',
     });
 
     // Get and return the download URL
     return getDownloadURL(snapshot.ref);
+}
+
+/**
+ * Convert HEIC file to JPEG if necessary
+ * @param file - The file to check and potentially convert
+ * @returns The converted File or the original File
+ */
+export async function convertToJpegIfHeic(file: File): Promise<File> {
+    if (
+        file.type === 'image/heic' ||
+        file.name.toLowerCase().endsWith('.heic')
+    ) {
+        try {
+            const result = await heic2any({
+                blob: file,
+                toType: 'image/jpeg',
+                quality: 0.8,
+            });
+
+            const blob = Array.isArray(result) ? result[0] : result;
+            const newName = file.name.replace(/\.[^/.]+$/, '') + '.jpg';
+
+            return new File([blob], newName, {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+            });
+        } catch (error) {
+            console.error('HEIC conversion failed:', error);
+            return file;
+        }
+    }
+    return file;
 }
 
 /**
@@ -75,7 +112,7 @@ export async function compressImage(
                 const canvas = document.createElement('canvas');
                 let { width, height } = img;
 
-                // Calculate new dimensions
+                // Calculate new dimensions (only downscale, never upscale)
                 if (width > maxWidth) {
                     height = (height * maxWidth) / width;
                     width = maxWidth;
@@ -124,16 +161,20 @@ export async function uploadMilestoneImage(
 ): Promise<string> {
     const storage = getFirebaseStorage();
 
+    // Convert HEIC to JPEG if needed
+    const processedFile = await convertToJpegIfHeic(file);
+
     // Create a unique filename
-    const extension = file.name.split('.').pop() || 'jpg';
+    const extension = processedFile.name.split('.').pop() || 'jpg';
     const filename = `${milestoneId}-${Date.now()}.${extension}`;
 
     // Create the storage reference
     const storageRef = ref(storage, `milestones/${userId}/${filename}`);
 
     // Upload the file
-    const snapshot = await uploadBytes(storageRef, file, {
-        contentType: file.type,
+    const snapshot = await uploadBytes(storageRef, processedFile, {
+        contentType: processedFile.type,
+        cacheControl: 'public,max-age=31536000',
     });
 
     // Get and return the download URL

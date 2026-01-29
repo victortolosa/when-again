@@ -11,6 +11,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { describeRecurrence } from '@/lib/utils/recurrence';
 import { format } from 'date-fns';
+import { useSettings } from '@/components/layout/AppShell';
+import { cn } from '@/lib/utils';
+import { MeshGradientBackground } from '@/components/ui/MeshGradientBackground';
 
 interface EventCardProps {
     event: EventType;
@@ -19,34 +22,33 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, onEdit, onDelete }: EventCardProps) {
+    const { } = useSettings();
     const startDate = event.start_date.toDate();
     const recurrenceText = describeRecurrence(event.recurrence_rule);
 
     return (
         <Card
-            className="group relative overflow-hidden transition-all hover:shadow-lg"
-            style={{
-                borderLeftWidth: '4px',
-                borderLeftColor: event.color_theme
-            }}
+            className={cn(
+                "group relative overflow-hidden transition-all hover:shadow-lg text-white"
+            )}
         >
-            <CardContent className="p-4 sm:p-6 pr-12">
+            {/* Mesh Gradient Background */}
+            <MeshGradientBackground color={event.color_theme} />
+            <CardContent className="relative z-10 h-full flex flex-col p-4 sm:p-6 pr-12">
                 <div className="flex items-start justify-between gap-3 sm:gap-4">
                     <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-base sm:text-lg truncate">{event.title}</h3>
-                        <p className="text-xs sm:text-sm text-muted-foreground mt-1 capitalize">
+                        <p className="text-xs sm:text-sm mt-1 capitalize text-white/80">
                             🔄 {recurrenceText}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs mt-1 text-white/70">
                             Started: {format(startDate, 'MMM d, yyyy')}
                         </p>
                         {event.category && (
                             <span
-                                className="inline-block mt-2 px-2 py-1 text-xs rounded-full"
-                                style={{
-                                    backgroundColor: `${event.color_theme}20`,
-                                    color: event.color_theme
-                                }}
+                                className={cn(
+                                    "inline-block mt-2 px-2 py-1 text-xs rounded-full bg-white/20 text-white backdrop-blur-sm border border-white/10"
+                                )}
                             >
                                 {event.category}
                             </span>
@@ -56,7 +58,7 @@ export function EventCard({ event, onEdit, onDelete }: EventCardProps) {
                     <div className="text-right shrink-0 pr-2">
                         <div
                             className="text-3xl sm:text-4xl"
-                            style={{ color: event.color_theme }}
+                            style={{ filter: 'brightness(0) invert(1)' }}
                         >
                             📅
                         </div>
@@ -71,7 +73,9 @@ export function EventCard({ event, onEdit, onDelete }: EventCardProps) {
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-8 w-8 p-0 hover:bg-accent touch-manipulation"
+                                    className={cn(
+                                        "h-8 w-8 p-0 touch-manipulation hover:bg-white/20 text-white",
+                                    )}
                                     aria-label="Open menu"
                                 >
                                     ⋮

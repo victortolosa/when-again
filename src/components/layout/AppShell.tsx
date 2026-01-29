@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState, createContext, useContext } from 'react';
+import { ReactNode, useState, createContext, useContext, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
-// Context for category settings
+// Context for settings
 interface SettingsContextType {
     showCategories: boolean;
     setShowCategories: (show: boolean) => void;
@@ -39,7 +39,21 @@ export function AppShell({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const { user, signOut, loading } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [showCategories, setShowCategories] = useState(true);
+    const [showCategories, setShowCategories] = useState(false);
+
+    // Load initial state from localStorage
+    useEffect(() => {
+        const savedCategories = localStorage.getItem('showCategories');
+        if (savedCategories !== null) {
+            setShowCategories(savedCategories === 'true');
+        }
+    }, []);
+
+    // Save to localStorage whenever state changes
+    const toggleCategories = (show: boolean) => {
+        setShowCategories(show);
+        localStorage.setItem('showCategories', String(show));
+    };
 
     // Auth page renders directly without AppShell wrapper
     if (pathname === '/auth') {
@@ -93,12 +107,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                                 ⚙️
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuContent align="end" className="w-56">
                             <DropdownMenuItem
-                                onClick={() => setShowCategories(!showCategories)}
+                                onClick={() => toggleCategories(!showCategories)}
                                 className="cursor-pointer"
                             >
-                                <span className="mr-2">{showCategories ? '✓' : ' '}</span>
+                                <span className="mr-2 w-4">{showCategories ? '✓' : ' '}</span>
                                 <span>Show Categories</span>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -165,12 +179,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                                 ⚙️
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuContent align="end" className="w-56">
                             <DropdownMenuItem
-                                onClick={() => setShowCategories(!showCategories)}
+                                onClick={() => toggleCategories(!showCategories)}
                                 className="cursor-pointer"
                             >
-                                <span className="mr-2">{showCategories ? '✓' : ' '}</span>
+                                <span className="mr-2 w-4">{showCategories ? '✓' : ' '}</span>
                                 <span>Show Categories</span>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -179,7 +193,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
                 {/* Main Content */}
                 <main className="flex-1 p-4 md:p-8 overflow-auto">
-                    <SettingsContext.Provider value={{ showCategories, setShowCategories }}>
+                    <SettingsContext.Provider value={{
+                        showCategories,
+                        setShowCategories: toggleCategories
+                    }}>
                         {children}
                     </SettingsContext.Provider>
                 </main>

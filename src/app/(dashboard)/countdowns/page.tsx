@@ -5,14 +5,18 @@ import { Button } from '@/components/ui/button';
 import { TrackerGroup } from '@/components/dashboard/TrackerGroup';
 import { TrackerCard } from '@/components/dashboard/TrackerCard';
 import { TrackerForm } from '@/components/dashboard/TrackerForm';
-import { useTrackers, useCreateTracker, useDeleteTracker } from '@/hooks/useTrackers';
+import { useTrackers, useCreateTracker, useUpdateTracker, useDeleteTracker } from '@/hooks/useTrackers';
 import { Tracker, TrackerFormData } from '@/lib/types';
+import { uploadMilestoneImage, deleteMilestoneImage } from '@/lib/storage';
+import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/components/layout/AppShell';
 
 export default function CountdownsPage() {
     const { showCategories } = useSettings();
+    const { user } = useAuth();
     const { data: trackers = [], isLoading: trackersLoading } = useTrackers();
     const createTracker = useCreateTracker();
+    const updateTracker = useUpdateTracker();
     const deleteTracker = useDeleteTracker();
 
     // Filter for countdowns (type: 'till')
@@ -39,13 +43,53 @@ export default function CountdownsPage() {
         );
     }, [countdowns]);
 
-    const handleCreateTracker = (data: TrackerFormData) => {
-        createTracker.mutate(data);
+    const handleCreateTracker = async (data: TrackerFormData, file?: File) => {
+        try {
+            // Create tracker first to get ID
+            const trackerId = await new Promise<string>((resolve, reject) => {
+                createTracker.mutate(
+                    { ...data, image_url: undefined },
+                    {
+                        onError: reject,
+                        onSuccess: (id) => resolve(id),
+                    }
+                );
+            });
+
+            // If file provided: upload → update tracker with image_url
+            if (file && user) {
+                const imageUrl = await uploadMilestoneImage(file, user.uid, trackerId);
+                try {
+                    await new Promise<void>((resolve, reject) => {
+                        updateTracker.mutate(
+                            { id: trackerId, data: { image_url: imageUrl } },
+                            {
+                                onError: reject,
+                                onSuccess: () => resolve(),
+                            }
+                        );
+                    });
+                } catch (dbError) {
+                    // Cleanup orphan image if DB update failed
+                    await deleteMilestoneImage(imageUrl);
+                    throw dbError;
+                }
+            }
+        } catch (error) {
+            console.error('Error creating countdown:', error);
+            alert(`Failed to create countdown: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
     };
 
-    const handleDeleteTracker = (id: string) => {
+    const handleDeleteTracker = async (id: string) => {
+        const tracker = trackers.find((t) => t.id === id);
+
         if (confirm('Are you sure you want to delete this countdown?')) {
-            deleteTracker.mutate({ id });
+            try {
+                deleteTracker.mutate({ id, imageUrl: tracker?.image_url });
+            } catch (error) {
+                console.error('Error deleting countdown:', error);
+            }
         }
     };
 

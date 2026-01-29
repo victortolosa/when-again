@@ -63,6 +63,7 @@ export async function createTracker(
         category: data.category,
         color_theme: data.color_theme,
         image_url: data.image_url || null,
+        display_units: data.display_units || ['days'],
         created_at: serverTimestamp(),
         updated_at: serverTimestamp(),
     };
@@ -96,6 +97,7 @@ export async function updateTracker(
     if (data.category !== undefined) updateData.category = data.category;
     if (data.color_theme !== undefined) updateData.color_theme = data.color_theme;
     if (data.image_url !== undefined) updateData.image_url = data.image_url || null;
+    if (data.display_units !== undefined) updateData.display_units = data.display_units;
 
     await updateDoc(docRef, updateData);
 }
