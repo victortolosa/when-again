@@ -11,6 +11,14 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "DateKeeper - Track Time Beautifully",
   description: "Track habits, count down to events, and journal your days with beautiful visuals.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "DateKeeper",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function RootLayout({

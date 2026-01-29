@@ -1,33 +1,19 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { TrackerGroup } from '@/components/dashboard/TrackerGroup';
 import { TrackerForm } from '@/components/dashboard/TrackerForm';
-import { CalendarGrid } from '@/components/calendar/CalendarGrid';
-import { DayDetailModal } from '@/components/calendar/DayDetailModal';
 import { useTrackers, useCreateTracker, useUpdateTracker, useDeleteTracker } from '@/hooks/useTrackers';
-import { useMonthEntries, useDayEntry } from '@/hooks/useEntries';
 import { Tracker, TrackerFormData } from '@/lib/types';
 
 export default function MilestonesPage() {
-    const [viewMode, setViewMode] = useState<'dashboard' | 'calendar'>('dashboard');
-    const [currentDate, setCurrentDate] = useState(new Date());
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [editingTracker, setEditingTracker] = useState<Tracker | null>(null);
 
     const { data: trackers = [], isLoading: trackersLoading } = useTrackers();
     const createTracker = useCreateTracker();
     const updateTracker = useUpdateTracker();
     const deleteTracker = useDeleteTracker();
-
-    const { data: entries = [] } = useMonthEntries(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        viewMode === 'calendar'
-    );
-    const { data: selectedEntry } = useDayEntry(selectedDate);
 
     // Filter for milestones (type: 'since')
     const milestones = useMemo(
@@ -86,10 +72,6 @@ export default function MilestonesPage() {
         }
     };
 
-    const handleDayClick = (date: Date) => {
-        setSelectedDate(date);
-    };
-
     if (trackersLoading) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -103,12 +85,6 @@ export default function MilestonesPage() {
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold">Milestones</h1>
                 <div className="flex items-center gap-4">
-                    <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'dashboard' | 'calendar')} className="w-[300px]">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="dashboard">List View</TabsTrigger>
-                            <TabsTrigger value="calendar">Calendar</TabsTrigger>
-                        </TabsList>
-                    </Tabs>
                     <TrackerForm
                         onSubmit={handleCreateTracker}
                         initialData={{ type: 'since' }}
@@ -134,49 +110,26 @@ export default function MilestonesPage() {
                 </div>
             </div>
 
-            {viewMode === 'dashboard' ? (
-                <div className="space-y-6">
-                    {milestones.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">
-                            <p className="text-lg">No milestones yet</p>
-                            <p className="text-sm mt-2">Track days since important events like quitting habits or starting new ones!</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-8">
-                            {Object.entries(milestoneGroups).map(([category, items]) => (
-                                <TrackerGroup
-                                    key={category}
-                                    category={category}
-                                    trackers={items}
-                                    onEdit={handleEditTracker}
-                                    onDelete={handleDeleteTracker}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
-            ) : (
-                <div className="space-y-6">
-                    <CalendarGrid
-                        events={[]}
-                        entries={entries}
-                        trackers={milestones}
-                        currentDate={currentDate}
-                        onDateChange={setCurrentDate}
-                        onDayClick={handleDayClick}
-                        selectedDate={selectedDate}
-                    />
-
-                    {selectedDate && (
-                        <DayDetailModal
-                            date={selectedDate}
-                            events={[]}
-                            entry={selectedEntry || null}
-                            onClose={() => setSelectedDate(null)}
-                        />
-                    )}
-                </div>
-            )}
+            <div className="space-y-6">
+                {milestones.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                        <p className="text-lg">No milestones yet</p>
+                        <p className="text-sm mt-2">Track days since important events like quitting habits or starting new ones!</p>
+                    </div>
+                ) : (
+                    <div className="space-y-8">
+                        {Object.entries(milestoneGroups).map(([category, items]) => (
+                            <TrackerGroup
+                                key={category}
+                                category={category}
+                                trackers={items}
+                                onEdit={handleEditTracker}
+                                onDelete={handleDeleteTracker}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
