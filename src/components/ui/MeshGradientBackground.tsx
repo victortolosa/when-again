@@ -2,9 +2,11 @@
 
 import { MeshGradient } from '@mesh-gradient/react';
 import { useMemo } from 'react';
+import { GradientConfig } from '@/lib/types';
 
 interface MeshGradientBackgroundProps {
-    color: string;
+    color?: string;
+    gradientConfig?: GradientConfig;
     className?: string;
 }
 
@@ -39,18 +41,29 @@ function hexToHsl(hex: string): { h: number; s: number; l: number } {
  * Convert HSL back to hex
  */
 function hslToHex(h: number, s: number, l: number): string {
-    l /= 100;
-    const a = s * Math.min(l, 1 - l) / 100;
+    const lightness = l / 100;
+    const a = s * Math.min(lightness, 1 - lightness) / 100;
     const f = (n: number) => {
         const k = (n + h / 30) % 12;
-        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        const color = lightness - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
         return Math.round(255 * color).toString(16).padStart(2, '0');
     };
     return `#${f(0)}${f(8)}${f(4)}`;
 }
 
-export function MeshGradientBackground({ color, className }: MeshGradientBackgroundProps) {
+export function MeshGradientBackground({ color, gradientConfig, className }: MeshGradientBackgroundProps) {
     const colors = useMemo((): [string, string, string, string] => {
+        // If gradient config is provided, use it (new behavior)
+        if (gradientConfig?.colors) {
+            return gradientConfig.colors;
+        }
+
+        // Otherwise, generate from single color (legacy behavior)
+        if (!color) {
+            // Fallback to default gradient
+            return ['#1e293b', '#0f172a', '#020617', '#000000'];
+        }
+
         const hsl = hexToHsl(color);
 
         // Base is darker for readability (max 30% lightness)
@@ -67,7 +80,7 @@ export function MeshGradientBackground({ color, className }: MeshGradientBackgro
         const compDarker = hslToHex(compHue, hsl.s, Math.min(hsl.l, 5));
 
         return [baseDark, compliment, primaryDarker, compDarker];
-    }, [color]);
+    }, [color, gradientConfig]);
 
     return (
         <div className={className} style={{ position: 'absolute', inset: 0, zIndex: 0 }}>

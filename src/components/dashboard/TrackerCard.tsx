@@ -31,24 +31,51 @@ export function TrackerCard({ tracker, onEdit, onDelete }: TrackerCardProps) {
     const daysDiff = differenceInDays(today, targetDate);
     const totalDaysAbs = Math.abs(daysDiff);
 
-    const parts = [];
+    // Build parts with priority ordering (year > month > day)
+    interface Part {
+        value: string;
+        label: string;
+        priority: number;
+    }
+
+    const partsWithPriority: Part[] = [];
+
     if (displayUnits.includes('years')) {
         const years = totalDaysAbs / 365.25;
         const formattedYears = (years > 0 && years < 10) ? years.toFixed(1).replace(/\.0$/, '') : Math.round(years).toString();
-        parts.push(`${formattedYears} ${formattedYears === '1' ? 'year' : 'years'}`);
+        partsWithPriority.push({
+            value: formattedYears,
+            label: formattedYears === '1' ? 'year' : 'years',
+            priority: 3,
+        });
     }
     if (displayUnits.includes('months')) {
         const months = totalDaysAbs / 30.4375;
         const formattedMonths = (months > 0 && months < 10) ? months.toFixed(1).replace(/\.0$/, '') : Math.round(months).toString();
-        parts.push(`${formattedMonths} ${formattedMonths === '1' ? 'month' : 'months'}`);
+        partsWithPriority.push({
+            value: formattedMonths,
+            label: formattedMonths === '1' ? 'month' : 'months',
+            priority: 2,
+        });
     }
     if (displayUnits.includes('days')) {
-        parts.push(`${totalDaysAbs} ${totalDaysAbs === 1 ? 'day' : 'days'}`);
+        partsWithPriority.push({
+            value: totalDaysAbs.toString(),
+            label: totalDaysAbs === 1 ? 'day' : 'days',
+            priority: 1,
+        });
     }
 
-    if (parts.length === 0) {
-        parts.push(`0 ${displayUnits[0] || 'days'}`);
+    if (partsWithPriority.length === 0) {
+        partsWithPriority.push({
+            value: '0',
+            label: displayUnits[0] || 'days',
+            priority: 1,
+        });
     }
+
+    // Sort by priority (highest first)
+    const sortedParts = [...partsWithPriority].sort((a, b) => b.priority - a.priority);
 
     const formattedDate = format(targetDate, 'MM/dd/yyyy');
 
@@ -59,9 +86,12 @@ export function TrackerCard({ tracker, onEdit, onDelete }: TrackerCardProps) {
                 (tracker.image_url || true) && "bg-transparent"
             )}
         >
-            {/* Mesh Gradient Background */}
+            {/* Mesh Gradient Background - Use stored gradient or fall back to color */}
             {!tracker.image_url && (
-                <MeshGradientBackground color={tracker.color_theme} />
+                <MeshGradientBackground
+                    gradientConfig={tracker.gradient_config}
+                    color={tracker.color_theme}
+                />
             )}
 
             {/* Full Background Image */}
@@ -84,13 +114,23 @@ export function TrackerCard({ tracker, onEdit, onDelete }: TrackerCardProps) {
                     "p-5 sm:p-7"
                 )}
             >
-                {/* Top section: Category (left) and Menu (right) */}
-                <div className="flex justify-between items-start">
-                    <div className="min-w-0">
+                {/* Top section: Title (left) and Menu (right) */}
+                <div className="flex justify-between items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                        <h3
+                            className={cn(
+                                "font-semibold text-2xl sm:text-3xl leading-tight text-white line-clamp-2",
+                            )}
+                            style={{
+                                textShadow: '0 2px 4px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.2)'
+                            }}
+                        >
+                            {tracker.title}
+                        </h3>
                         {tracker.category && (
                             <span
                                 className={cn(
-                                    "inline-block px-2 py-1 text-[10px] sm:text-xs font-medium rounded-full",
+                                    "inline-block px-2 py-1 text-[10px] sm:text-xs font-medium rounded-full mt-2",
                                     (tracker.image_url || true)
                                         ? "bg-white/20 text-white backdrop-blur-sm border border-white/10"
                                         : "bg-muted text-muted-foreground"
@@ -101,7 +141,7 @@ export function TrackerCard({ tracker, onEdit, onDelete }: TrackerCardProps) {
                         )}
                     </div>
 
-                    {/* Action menu - now inside padding flow */}
+                    {/* Action menu */}
                     {(onEdit || onDelete) && (
                         <div className="shrink-0 -mr-2 -mt-2">
                             <DropdownMenu>
@@ -145,22 +185,12 @@ export function TrackerCard({ tracker, onEdit, onDelete }: TrackerCardProps) {
                     )}
                 </div>
 
-                {/* Bottom section: Title/Date (left) and Duration (right) */}
+                {/* Bottom section: Date (left) and Duration (right) */}
                 <div className="mt-auto flex items-end justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                        <h3
-                            className={cn(
-                                "font-semibold text-base sm:text-xl truncate leading-tight text-white",
-                            )}
-                            style={{
-                                textShadow: '0 2px 4px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.2)'
-                            }}
-                        >
-                            {tracker.title}
-                        </h3>
                         <p
                             className={cn(
-                                "text-[10px] sm:text-xs font-medium uppercase tracking-wider mt-1 text-white/80",
+                                "text-[10px] sm:text-xs font-medium uppercase tracking-wider text-white/80",
                             )}
                             style={{
                                 textShadow: '0 1px 3px rgba(0,0,0,0.3)'
@@ -170,22 +200,94 @@ export function TrackerCard({ tracker, onEdit, onDelete }: TrackerCardProps) {
                         </p>
                     </div>
 
-                    <div className="flex flex-col items-end shrink-0">
-                        {parts.map((part, index) => (
-                            <div
-                                key={index}
-                                className={cn(
-                                    "font-bold tabular-nums leading-[0.85] text-right text-white",
-                                    parts.length > 2 ? "text-lg sm:text-2xl" :
-                                        parts.length > 1 ? "text-2xl sm:text-4xl" : "text-4xl sm:text-6xl"
-                                )}
-                                style={{
-                                    textShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                                }}
-                            >
-                                {part}
+
+
+                    <div className="flex flex-col items-end shrink-0 gap-1">
+                        {/* Single unit or multi-unit display */}
+                        {sortedParts.length === 1 ? (
+                            // Single unit: vertical layout with AGO
+                            <div className="flex flex-col items-end">
+                                <div className="flex items-baseline gap-1 justify-end">
+                                    <div
+                                        className="font-bold tabular-nums leading-[0.85] text-right text-white text-4xl sm:text-6xl"
+                                        style={{
+                                            textShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                                        }}
+                                    >
+                                        {sortedParts[0].value}
+                                    </div>
+                                    <span
+                                        className="font-semibold text-right text-white text-sm sm:text-base"
+                                        style={{
+                                            textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                                        }}
+                                    >
+                                        {sortedParts[0].label}
+                                    </span>
+                                </div>
+                                <span className="text-[9px] sm:text-[10px] text-gray-400 font-medium mt-1">
+                                    AGO
+                                </span>
                             </div>
-                        ))}
+                        ) : (
+                            <>
+                                {/* High priority item on top */}
+                                <div className="flex items-baseline gap-1 justify-end">
+                                    <div
+                                        className="font-bold tabular-nums leading-[0.85] text-right text-white text-4xl sm:text-6xl"
+                                        style={{
+                                            textShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                                        }}
+                                    >
+                                        {sortedParts[0].value}
+                                    </div>
+                                    <span
+                                        className="font-semibold text-right text-white text-sm sm:text-base"
+                                        style={{
+                                            textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                                        }}
+                                    >
+                                        {sortedParts[0].label}
+                                    </span>
+                                </div>
+
+                                {/* Remaining items on same line */}
+                                <div className="flex items-baseline gap-1 justify-end">
+                                    {/* "OR" prefix for 2 items, or "OR" + slash separator for 3 items */}
+                                    {sortedParts.length >= 2 && (
+                                        <span className="text-[10px] sm:text-xs text-gray-400 font-medium">
+                                            OR
+                                        </span>
+                                    )}
+
+                                    {sortedParts.slice(1).map((part, index) => (
+                                        <div key={index + 1} className="flex items-baseline gap-1">
+                                            {/* Show "/" separator before last item if there are 3 total */}
+                                            {sortedParts.length === 3 && index === 1 && (
+                                                <span className="text-gray-400 font-medium">/</span>
+                                            )}
+
+                                            <div
+                                                className="font-bold tabular-nums leading-[0.85] text-right text-white text-lg sm:text-2xl"
+                                                style={{
+                                                    textShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                                                }}
+                                            >
+                                                {part.value}
+                                            </div>
+                                            <span
+                                                className="font-semibold text-right text-white text-xs sm:text-sm"
+                                                style={{
+                                                    textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                                                }}
+                                            >
+                                                {part.label}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </CardContent>

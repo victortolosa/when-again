@@ -13,9 +13,11 @@ import {
     DialogFooter,
     DialogClose,
 } from '@/components/ui/dialog';
-import { TrackerFormData, DEFAULT_CATEGORIES, COLOR_THEMES } from '@/lib/types';
+import { TrackerFormData, DEFAULT_CATEGORIES, COLOR_THEMES, GradientConfig } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { convertToJpegIfHeic } from '@/lib/storage';
+import { generateUniqueGradient, generateRandomGradient } from '@/lib/utils/gradient-generator';
+import { MeshGradient } from '@mesh-gradient/react';
 import {
     Tabs,
     TabsList,
@@ -69,7 +71,13 @@ export function TrackerForm({
         color_theme: initialData?.color_theme || COLOR_THEMES[9], // Default to blue
         image_url: initialData?.image_url || undefined,
         display_units: initialData?.display_units || ['days'],
+        gradient_config: initialData?.gradient_config,
     });
+
+    const handleRegenerateGradient = () => {
+        const newGradient = generateRandomGradient();
+        setFormData({ ...formData, gradient_config: newGradient });
+    };
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(initialData?.image_url || null);
@@ -149,7 +157,20 @@ export function TrackerForm({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit({ ...formData, image_url: imagePreview || undefined }, selectedFile || undefined);
+
+        // Generate unique gradient based on title and timestamp (only if no image)
+        let gradientConfig = formData.gradient_config;
+        if (!imagePreview && !initialData?.gradient_config) {
+            const seed = formData.title + Date.now().toString();
+            gradientConfig = generateUniqueGradient(seed);
+        }
+
+        onSubmit({
+            ...formData,
+            image_url: imagePreview || undefined,
+            gradient_config: gradientConfig,
+        }, selectedFile || undefined);
+
         setOpen(false);
         // Reset form with local midnight date
         const today = new Date();
@@ -161,6 +182,7 @@ export function TrackerForm({
             color_theme: COLOR_THEMES[9],
             image_url: undefined,
             display_units: ['days'],
+            gradient_config: undefined,
         });
         setSelectedFile(null);
         setImagePreview(null);
@@ -387,6 +409,47 @@ export function TrackerForm({
                                     </Button>
                                 </div>
                             </div>
+
+                            {/* Gradient Preview & Regenerate - Only show if editing and no image */}
+                            {initialData && !imagePreview && (
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <Label>Background Gradient</Label>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handleRegenerateGradient}
+                                        >
+                                            🎨 Regenerate
+                                        </Button>
+                                    </div>
+                                    <div className="relative w-full aspect-video rounded-lg overflow-hidden border">
+                                        {formData.gradient_config?.colors ? (
+                                            <MeshGradient
+                                                options={{
+                                                    colors: formData.gradient_config.colors,
+                                                    isStatic: true
+                                                }}
+                                                className="w-full h-full"
+                                            />
+                                        ) : (
+                                            <div
+                                                className="w-full h-full"
+                                                style={{ backgroundColor: formData.color_theme }}
+                                            />
+                                        )}
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <span className="text-white text-sm font-medium drop-shadow-lg">
+                                                Preview
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Don't like it? Click "Regenerate" for a new gradient
+                                    </p>
+                                </div>
+                            )}
 
                             {/* Color Theme */}
                             <div className="space-y-2">

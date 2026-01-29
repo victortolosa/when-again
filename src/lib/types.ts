@@ -9,6 +9,7 @@ export interface Tracker {
     type: 'since' | 'till';
     category: string;
     color_theme: string;
+    gradient_config?: GradientConfig; // New: stores unique gradient colors
     image_url?: string;
     display_units?: ('years' | 'months' | 'days')[];
     created_at: Timestamp;
@@ -21,8 +22,14 @@ export interface TrackerFormData {
     type: 'since' | 'till';
     category: string;
     color_theme: string;
+    gradient_config?: GradientConfig;
     image_url?: string;
     display_units?: ('years' | 'months' | 'days')[];
+}
+
+// Gradient configuration for backgrounds
+export interface GradientConfig {
+    colors: [string, string, string, string];
 }
 
 // Event Types - Items that repeat based on recurrence rules
@@ -33,7 +40,8 @@ export interface Event {
     start_date: Timestamp;
     recurrence_rule: string; // iCal RRule format (e.g., "FREQ=MONTHLY;BYMONTHDAY=1")
     category: string;
-    color_theme: string;
+    color_theme: string; // Legacy field
+    gradient_config?: GradientConfig; // New: stores unique gradient colors
     created_at: Timestamp;
     updated_at: Timestamp;
 }
@@ -44,6 +52,7 @@ export interface EventFormData {
     recurrence_rule: string;
     category: string;
     color_theme: string;
+    gradient_config?: GradientConfig;
 }
 
 // Daily Entry Types - User-generated journal content for specific days

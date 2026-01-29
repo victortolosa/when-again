@@ -32,8 +32,11 @@ export function EventCard({ event, onEdit, onDelete }: EventCardProps) {
                 "group relative overflow-hidden transition-all hover:shadow-lg text-white"
             )}
         >
-            {/* Mesh Gradient Background */}
-            <MeshGradientBackground color={event.color_theme} />
+            {/* Mesh Gradient Background - Use stored gradient or fall back to color */}
+            <MeshGradientBackground
+                gradientConfig={event.gradient_config}
+                color={event.color_theme}
+            />
             <CardContent className="relative z-10 h-full flex flex-col p-4 sm:p-6 pr-12">
                 <div className="flex items-start justify-between gap-3 sm:gap-4">
                     <div className="flex-1 min-w-0">

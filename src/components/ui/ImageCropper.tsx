@@ -29,7 +29,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
 }) => {
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
-    const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
     const onCropChange = (crop: { x: number; y: number }) => {
         setCrop(crop);
@@ -39,8 +39,15 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
         setZoom(zoom);
     };
 
+    interface CroppedArea {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    }
+
     const onCropCompleteInternal = useCallback(
-        (_croppedArea: any, croppedAreaPixels: any) => {
+        (_croppedArea: CroppedArea, croppedAreaPixels: CroppedArea) => {
             setCroppedAreaPixels(croppedAreaPixels);
         },
         []
@@ -48,6 +55,8 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
 
     const handleSave = async () => {
         try {
+            if (!croppedAreaPixels) return;
+
             const croppedBlob = await getCroppedImg(
                 image,
                 croppedAreaPixels,

@@ -16,6 +16,18 @@ const firebaseConfig = {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
+// Validate Firebase configuration
+function validateFirebaseConfig() {
+    const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'appId'];
+    const missingKeys = requiredKeys.filter(key => !firebaseConfig[key as keyof typeof firebaseConfig]);
+
+    if (missingKeys.length > 0) {
+        console.error('Missing Firebase configuration:', missingKeys);
+        return false;
+    }
+    return true;
+}
+
 // Lazy initialization for SSR compatibility
 let app: FirebaseApp | undefined;
 let authInstance: Auth | undefined;
@@ -24,7 +36,7 @@ let storageInstance: FirebaseStorage | undefined;
 let analyticsInstance: Analytics | undefined;
 
 export function getApp(): FirebaseApp {
-    // In Next.js, Firebase should only be initialized on the client side 
+    // In Next.js, Firebase should only be initialized on the client side
     // unless using firebase-admin on the server.
     if (typeof window === 'undefined') {
         // Return a dummy or handle server-side gracefully if needed
@@ -33,7 +45,15 @@ export function getApp(): FirebaseApp {
     }
 
     if (!app) {
-        app = getApps().length === 0 ? initializeApp(firebaseConfig) : getFirebaseAppInstance();
+        try {
+            if (!validateFirebaseConfig()) {
+                throw new Error('Invalid Firebase configuration. Please check your environment variables.');
+            }
+            app = getApps().length === 0 ? initializeApp(firebaseConfig) : getFirebaseAppInstance();
+        } catch (error) {
+            console.error('Failed to initialize Firebase:', error);
+            throw error;
+        }
     }
     return app;
 }
@@ -69,9 +89,36 @@ export async function getFirebaseAnalytics(): Promise<Analytics | undefined> {
     return analyticsInstance;
 }
 
-// Named exports for convenience
-export const auth = typeof window !== 'undefined' ? getFirebaseAuth() : ({} as Auth);
-export const db = typeof window !== 'undefined' ? getFirebaseDb() : ({} as Firestore);
-export const storage = typeof window !== 'undefined' ? getFirebaseStorage() : ({} as FirebaseStorage);
+// Named exports for convenience - lazy initialization to prevent errors
+let _auth: Auth | undefined;
+let _db: Firestore | undefined;
+let _storage: FirebaseStorage | undefined;
 
-export default getApp();
+export const auth = typeof window !== 'undefined'
+    ? new Proxy({} as Auth, {
+        get: (target, prop: string | symbol) => {
+            if (!_auth) _auth = getFirebaseAuth();
+            return ((_auth as unknown) as Record<string | symbol, unknown>)[prop];
+        }
+    })
+    : ({} as Auth);
+
+export const db = typeof window !== 'undefined'
+    ? new Proxy({} as Firestore, {
+        get: (target, prop: string | symbol) => {
+            if (!_db) _db = getFirebaseDb();
+            return ((_db as unknown) as Record<string | symbol, unknown>)[prop];
+        }
+    })
+    : ({} as Firestore);
+
+export const storage = typeof window !== 'undefined'
+    ? new Proxy({} as FirebaseStorage, {
+        get: (target, prop: string | symbol) => {
+            if (!_storage) _storage = getFirebaseStorage();
+            return ((_storage as unknown) as Record<string | symbol, unknown>)[prop];
+        }
+    })
+    : ({} as FirebaseStorage);
+
+export default typeof window !== 'undefined' ? getApp() : {} as FirebaseApp;

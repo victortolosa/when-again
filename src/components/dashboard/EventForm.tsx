@@ -13,9 +13,11 @@ import {
     DialogFooter,
     DialogClose,
 } from '@/components/ui/dialog';
-import { EventFormData, DEFAULT_CATEGORIES, COLOR_THEMES } from '@/lib/types';
+import { EventFormData, DEFAULT_CATEGORIES, COLOR_THEMES, GradientConfig } from '@/lib/types';
 import { RECURRENCE_PRESETS } from '@/lib/utils/recurrence';
 import { cn } from '@/lib/utils';
+import { generateUniqueGradient, generateRandomGradient } from '@/lib/utils/gradient-generator';
+import { MeshGradient } from '@mesh-gradient/react';
 
 interface EventFormProps {
     onSubmit: (data: EventFormData) => void;
@@ -48,11 +50,27 @@ export function EventForm({
         recurrence_rule: initialData?.recurrence_rule || RECURRENCE_PRESETS.monthly,
         category: initialData?.category || '',
         color_theme: initialData?.color_theme || COLOR_THEMES[5], // Default to green
+        gradient_config: initialData?.gradient_config,
     });
+
+    const handleRegenerateGradient = () => {
+        const newGradient = generateRandomGradient();
+        setFormData({ ...formData, gradient_config: newGradient });
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(formData);
+
+        // Generate unique gradient based on title and timestamp
+        const seed = formData.title + Date.now().toString();
+        const gradientConfig = generateUniqueGradient(seed);
+
+        // Submit with gradient config
+        onSubmit({
+            ...formData,
+            gradient_config: gradientConfig,
+        });
+
         setOpen(false);
         // Reset form
         setFormData({
@@ -61,6 +79,7 @@ export function EventForm({
             recurrence_rule: RECURRENCE_PRESETS.monthly,
             category: '',
             color_theme: COLOR_THEMES[5],
+            gradient_config: undefined,
         });
     };
 
@@ -135,6 +154,47 @@ export function EventForm({
                             ))}
                         </div>
                     </div>
+
+                    {/* Gradient Preview & Regenerate */}
+                    {initialData && (
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <Label>Background Gradient</Label>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleRegenerateGradient}
+                                >
+                                    🎨 Regenerate
+                                </Button>
+                            </div>
+                            <div className="relative w-full h-24 rounded-lg overflow-hidden border">
+                                {formData.gradient_config?.colors ? (
+                                    <MeshGradient
+                                        options={{
+                                            colors: formData.gradient_config.colors,
+                                            isStatic: true
+                                        }}
+                                        className="w-full h-full"
+                                    />
+                                ) : (
+                                    <div
+                                        className="w-full h-full"
+                                        style={{ backgroundColor: formData.color_theme }}
+                                    />
+                                )}
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-white text-sm font-medium drop-shadow-lg">
+                                        Preview
+                                    </span>
+                                </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Don't like it? Click "Regenerate" for a new gradient
+                            </p>
+                        </div>
+                    )}
 
                     {/* Color Theme */}
                     <div className="space-y-2">

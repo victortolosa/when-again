@@ -29,10 +29,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const auth = getFirebaseAuth();
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setUser(user);
-            setLoading(false);
-        });
+        const unsubscribe = onAuthStateChanged(
+            auth,
+            (user) => {
+                setUser(user);
+                setLoading(false);
+            },
+            (error) => {
+                console.error('Auth state change error:', error);
+                setLoading(false);
+            }
+        );
 
         return () => unsubscribe();
     }, []);

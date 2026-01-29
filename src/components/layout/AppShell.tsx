@@ -33,6 +33,7 @@ const navItems = [
     { href: '/milestones', label: 'Milestones', icon: '📈' },
     { href: '/countdowns', label: 'Countdowns', icon: '⏳' },
     { href: '/recurring', label: 'Recurring', icon: '🔄' },
+    { href: '/settings', label: 'Settings', icon: '⚙️' },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -44,8 +45,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     // Load initial state from localStorage
     useEffect(() => {
         const savedCategories = localStorage.getItem('showCategories');
-        if (savedCategories !== null) {
-            setShowCategories(savedCategories === 'true');
+        if (savedCategories === 'true') {
+            setShowCategories(true);
         }
     }, []);
 
@@ -63,7 +64,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
-                <div className="animate-pulse text-muted-foreground">Loading...</div>
+                <div className="space-y-6 text-center">
+                    <div className="relative">
+                        <div className="w-16 h-16 mx-auto rounded-full border-4 border-muted border-t-primary animate-spin" />
+                    </div>
+                    <div className="space-y-2">
+                        <div className="h-4 w-32 bg-muted rounded mx-auto animate-pulse" />
+                        <div className="h-3 w-24 bg-muted/60 rounded mx-auto animate-pulse" />
+                    </div>
+                </div>
             </div>
         );
     }
@@ -162,37 +171,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </div>
             </aside>
 
-            {/* Mobile Header */}
+            {/* Mobile Layout - No Header */}
             <div className="flex-1 flex flex-col">
-                <header className="md:hidden flex items-center justify-between p-4 border-b bg-card">
-                    <h1 className="text-xl font-bold text-violet-500">
-                        DateKeeper
-                    </h1>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-9 w-9 p-0"
-                                aria-label="Settings"
-                            >
-                                ⚙️
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
-                            <DropdownMenuItem
-                                onClick={() => toggleCategories(!showCategories)}
-                                className="cursor-pointer"
-                            >
-                                <span className="mr-2 w-4">{showCategories ? '✓' : ' '}</span>
-                                <span>Show Categories</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </header>
-
                 {/* Main Content */}
-                <main className="flex-1 p-4 md:p-8 overflow-auto">
+                <main className="flex-1 p-4 md:p-8 overflow-auto pb-24 md:pb-8">
                     <SettingsContext.Provider value={{
                         showCategories,
                         setShowCategories: toggleCategories
@@ -201,21 +183,30 @@ export function AppShell({ children }: { children: ReactNode }) {
                     </SettingsContext.Provider>
                 </main>
 
-                {/* Mobile Bottom Nav */}
-                <nav className="md:hidden flex border-t bg-card">
+                {/* Mobile Bottom Nav - Fixed with Glass Effect */}
+                <nav className="md:hidden fixed bottom-0 left-0 right-0 flex justify-center px-[18px] border-t border-white/10 backdrop-blur-xl bg-gradient-to-t from-black/90 via-gray-950/80 to-gray-900/70 z-50">
+                    {/* Noise texture overlay */}
+                    <div
+                        className="absolute inset-0 opacity-[0.03] pointer-events-none blur-[0.5px]"
+                        style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'repeat',
+                            backgroundSize: '64px 64px',
+                        }}
+                    />
                     {navItems.map((item) => (
                         <Link
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                'flex-1 flex flex-col items-center gap-1 py-3 transition-colors',
+                                'relative flex-1 flex flex-col items-center gap-1 py-3 px-2 transition-all duration-200',
                                 pathname === item.href
-                                    ? 'text-primary'
-                                    : 'text-muted-foreground'
+                                    ? 'text-violet-400'
+                                    : 'text-gray-400 active:text-gray-300'
                             )}
                         >
                             <span className="text-xl">{item.icon}</span>
-                            <span className="text-xs font-medium">{item.label}</span>
+                            <span className="text-[10px] font-medium">{item.label}</span>
                         </Link>
                     ))}
                 </nav>
