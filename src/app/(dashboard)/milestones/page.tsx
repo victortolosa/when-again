@@ -10,6 +10,7 @@ import { Tracker, TrackerFormData } from '@/lib/types';
 import { uploadMilestoneImage, deleteMilestoneImage } from '@/lib/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/components/layout/AppShell';
+import { sortTrackers } from '@/lib/utils/sorting';
 
 export default function MilestonesPage() {
     const [editingTracker, setEditingTracker] = useState<Tracker | null>(null);
@@ -37,12 +38,6 @@ export default function MilestonesPage() {
         return groups;
     }, [milestones]);
 
-    // Sort milestones chronologically (most recent first)
-    const sortedMilestones = useMemo(() => {
-        return [...milestones].sort((a, b) =>
-            b.target_date.toDate().getTime() - a.target_date.toDate().getTime()
-        );
-    }, [milestones]);
 
     const handleCreateTracker = async (data: TrackerFormData, file?: File) => {
         try {
@@ -218,7 +213,7 @@ export default function MilestonesPage() {
                     </div>
                 ) : (
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {sortedMilestones.map((tracker) => (
+                        {milestones.map((tracker) => (
                             <TrackerCard
                                 key={tracker.id}
                                 tracker={tracker}

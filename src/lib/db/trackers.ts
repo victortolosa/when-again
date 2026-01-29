@@ -62,6 +62,7 @@ export async function createTracker(
         type: data.type,
         category: data.category,
         color_theme: data.color_theme,
+        gradient_config: data.gradient_config,
         image_url: data.image_url || null,
         display_units: data.display_units || ['days'],
         created_at: serverTimestamp(),
@@ -96,6 +97,7 @@ export async function updateTracker(
     if (data.type !== undefined) updateData.type = data.type;
     if (data.category !== undefined) updateData.category = data.category;
     if (data.color_theme !== undefined) updateData.color_theme = data.color_theme;
+    if (data.gradient_config !== undefined) updateData.gradient_config = data.gradient_config;
     if (data.image_url !== undefined) updateData.image_url = data.image_url || null;
     if (data.display_units !== undefined) updateData.display_units = data.display_units;
 

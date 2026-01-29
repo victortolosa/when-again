@@ -52,6 +52,31 @@ function hslToHex(h: number, s: number, l: number): string {
 }
 
 export function MeshGradientBackground({ color, gradientConfig, className }: MeshGradientBackgroundProps) {
+    // Create a stable key based on actual color values to prevent unnecessary re-renders
+    const colorKey = useMemo(() => {
+        if (gradientConfig?.colors) {
+            return gradientConfig.colors.join(',');
+        }
+        return color || 'default';
+    }, [color, gradientConfig?.colors]);
+
+    // Use stored seed if available, otherwise generate from color key
+    const seed = useMemo(() => {
+        // If gradient config has a seed, use it
+        if (gradientConfig?.seed !== undefined) {
+            return gradientConfig.seed;
+        }
+
+        // Otherwise, generate a deterministic seed from the color key
+        let hash = 0;
+        for (let i = 0; i < colorKey.length; i++) {
+            const char = colorKey.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash | 0; // Convert to 32-bit integer
+        }
+        return Math.abs(hash);
+    }, [colorKey, gradientConfig?.seed]);
+
     const colors = useMemo((): [string, string, string, string] => {
         // If gradient config is provided, use it (new behavior)
         if (gradientConfig?.colors) {
@@ -80,14 +105,15 @@ export function MeshGradientBackground({ color, gradientConfig, className }: Mes
         const compDarker = hslToHex(compHue, hsl.s, Math.min(hsl.l, 5));
 
         return [baseDark, compliment, primaryDarker, compDarker];
-    }, [color, gradientConfig]);
+    }, [colorKey]);
 
     return (
         <div className={className} style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
             <MeshGradient
                 options={{
                     colors,
-                    isStatic: true
+                    isStatic: true,
+                    seed
                 }}
                 className="w-full h-full"
             />

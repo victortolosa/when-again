@@ -9,14 +9,21 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { SortSettings, SortField, SortDirection } from '@/lib/types';
 
 // Context for settings
 interface SettingsContextType {
     showCategories: boolean;
     setShowCategories: (show: boolean) => void;
+    sortSettings: SortSettings;
+    setSortSettings: (settings: SortSettings) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -32,7 +39,7 @@ export function useSettings() {
 const navItems = [
     { href: '/milestones', label: 'Milestones', icon: '📈' },
     { href: '/countdowns', label: 'Countdowns', icon: '⏳' },
-    { href: '/recurring', label: 'Recurring', icon: '🔄' },
+    // { href: '/recurring', label: 'Recurring', icon: '🔄' }, // Hidden - work in progress
     { href: '/settings', label: 'Settings', icon: '⚙️' },
 ];
 
@@ -41,6 +48,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     const { user, signOut, loading } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showCategories, setShowCategories] = useState(false);
+    const [sortSettings, setSortSettingsState] = useState<SortSettings>({
+        field: 'date',
+        direction: 'desc'
+    });
 
     // Load initial state from localStorage
     useEffect(() => {
@@ -48,12 +59,28 @@ export function AppShell({ children }: { children: ReactNode }) {
         if (savedCategories === 'true') {
             setShowCategories(true);
         }
+
+        // Load sort settings
+        const savedSort = localStorage.getItem('sortSettings');
+        if (savedSort) {
+            try {
+                const parsed = JSON.parse(savedSort);
+                setSortSettingsState(parsed);
+            } catch (error) {
+                console.error('Failed to parse sort settings:', error);
+            }
+        }
     }, []);
 
     // Save to localStorage whenever state changes
     const toggleCategories = (show: boolean) => {
         setShowCategories(show);
         localStorage.setItem('showCategories', String(show));
+    };
+
+    const updateSortSettings = (settings: SortSettings) => {
+        setSortSettingsState(settings);
+        localStorage.setItem('sortSettings', JSON.stringify(settings));
     };
 
     // Auth page renders directly without AppShell wrapper
@@ -124,6 +151,26 @@ export function AppShell({ children }: { children: ReactNode }) {
                                 <span className="mr-2 w-4">{showCategories ? '✓' : ' '}</span>
                                 <span>Show Categories</span>
                             </DropdownMenuItem>
+
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel>Sort By</DropdownMenuLabel>
+                            <DropdownMenuRadioGroup
+                                value={sortSettings.field}
+                                onValueChange={(value) => updateSortSettings({ ...sortSettings, field: value as SortField })}
+                            >
+                                <DropdownMenuRadioItem value="date">Date</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="created_at">Created At</DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
+
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel>Direction</DropdownMenuLabel>
+                            <DropdownMenuRadioGroup
+                                value={sortSettings.direction}
+                                onValueChange={(value) => updateSortSettings({ ...sortSettings, direction: value as SortDirection })}
+                            >
+                                <DropdownMenuRadioItem value="asc">Ascending</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="desc">Descending</DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -177,7 +224,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <main className="flex-1 p-4 md:p-8 overflow-auto pb-24 md:pb-8">
                     <SettingsContext.Provider value={{
                         showCategories,
-                        setShowCategories: toggleCategories
+                        setShowCategories: toggleCategories,
+                        sortSettings,
+                        setSortSettings: updateSortSettings
                     }}>
                         {children}
                     </SettingsContext.Provider>

@@ -2,9 +2,7 @@
  * Generate unique, harmonious gradient colors for events
  */
 
-export interface GradientConfig {
-  colors: [string, string, string, string];
-}
+import { GradientConfig } from '@/lib/types';
 
 /**
  * Generate a random number seeded by a string (for reproducibility)
@@ -14,7 +12,7 @@ function seededRandom(seed: string): number {
   for (let i = 0; i < seed.length; i++) {
     const char = seed.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
+    hash = hash | 0;
   }
   return Math.abs(hash) / 2147483647;
 }
@@ -34,11 +32,11 @@ function hslToHex(h: number, s: number, l: number): string {
 }
 
 /**
- * Generate a unique gradient based on a seed (timestamp + title)
- * This ensures the same event always gets the same gradient
+ * Generate a unique gradient based on a seed
+ * Creates harmonious colors using color theory (analogous and complementary)
  */
-export function generateUniqueGradient(seed: string): GradientConfig {
-  const random = seededRandom(seed);
+export function generateUniqueGradient(colorSeed: string, meshSeed?: number): GradientConfig {
+  const random = seededRandom(colorSeed);
 
   // Generate a base hue (0-360)
   const baseHue = Math.floor(random * 360);
@@ -56,21 +54,17 @@ export function generateUniqueGradient(seed: string): GradientConfig {
   const color4 = hslToHex(hue4, 55 + Math.floor(random * 25), 5 + Math.floor(random * 10));
 
   return {
-    colors: [color1, color2, color3, color4]
+    colors: [color1, color2, color3, color4],
+    seed: meshSeed ?? Math.floor(Math.random() * 1000000)
   };
 }
 
 /**
- * Generate a completely random gradient (for when no seed is provided)
+ * Generate a gradient with a new random seed (for regenerating)
  */
 export function generateRandomGradient(): GradientConfig {
-  const seed = Date.now().toString() + Math.random().toString();
-  return generateUniqueGradient(seed);
-}
-
-/**
- * Generate gradient from a base color (legacy support)
- */
-export function generateGradientFromColor(baseColor: string): GradientConfig {
-  return generateUniqueGradient(baseColor + Date.now().toString());
+  // Generate random color seed and mesh seed
+  const colorSeed = Date.now().toString() + Math.random().toString();
+  const meshSeed = Math.floor(Math.random() * 1000000);
+  return generateUniqueGradient(colorSeed, meshSeed);
 }

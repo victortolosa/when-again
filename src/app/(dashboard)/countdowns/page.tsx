@@ -36,12 +36,6 @@ export default function CountdownsPage() {
         return groups;
     }, [countdowns]);
 
-    // Sort countdowns chronologically (most recent first)
-    const sortedCountdowns = useMemo(() => {
-        return [...countdowns].sort((a, b) =>
-            b.target_date.toDate().getTime() - a.target_date.toDate().getTime()
-        );
-    }, [countdowns]);
 
     const handleCreateTracker = async (data: TrackerFormData, file?: File) => {
         try {
@@ -132,7 +126,7 @@ export default function CountdownsPage() {
                     </div>
                 ) : (
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {sortedCountdowns.map((tracker) => (
+                        {countdowns.map((tracker) => (
                             <TrackerCard
                                 key={tracker.id}
                                 tracker={tracker}

@@ -75,6 +75,7 @@ export function TrackerForm({
     });
 
     const handleRegenerateGradient = () => {
+        // Generate new gradient with random harmonious colors and mesh seed
         const newGradient = generateRandomGradient();
         setFormData({ ...formData, gradient_config: newGradient });
     };
@@ -158,11 +159,12 @@ export function TrackerForm({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Generate unique gradient based on title and timestamp (only if no image)
+        // Only generate a new gradient if one doesn't exist and there's no image
         let gradientConfig = formData.gradient_config;
-        if (!imagePreview && !initialData?.gradient_config) {
-            const seed = formData.title + Date.now().toString();
-            gradientConfig = generateUniqueGradient(seed);
+        if (!imagePreview && !gradientConfig) {
+            // Generate gradient with harmonious colors based on title + timestamp
+            const colorSeed = formData.title + Date.now().toString();
+            gradientConfig = generateUniqueGradient(colorSeed);
         }
 
         onSubmit({
@@ -429,7 +431,8 @@ export function TrackerForm({
                                             <MeshGradient
                                                 options={{
                                                     colors: formData.gradient_config.colors,
-                                                    isStatic: true
+                                                    isStatic: true,
+                                                    seed: formData.gradient_config.seed
                                                 }}
                                                 className="w-full h-full"
                                             />

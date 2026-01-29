@@ -54,6 +54,7 @@ export function EventForm({
     });
 
     const handleRegenerateGradient = () => {
+        // Generate new gradient with random harmonious colors and mesh seed
         const newGradient = generateRandomGradient();
         setFormData({ ...formData, gradient_config: newGradient });
     };
@@ -61,9 +62,13 @@ export function EventForm({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Generate unique gradient based on title and timestamp
-        const seed = formData.title + Date.now().toString();
-        const gradientConfig = generateUniqueGradient(seed);
+        // Only generate a new gradient if one doesn't exist (for new items)
+        let gradientConfig = formData.gradient_config;
+        if (!gradientConfig) {
+            // Generate gradient with harmonious colors based on title + timestamp
+            const colorSeed = formData.title + Date.now().toString();
+            gradientConfig = generateUniqueGradient(colorSeed);
+        }
 
         // Submit with gradient config
         onSubmit({
@@ -174,7 +179,8 @@ export function EventForm({
                                     <MeshGradient
                                         options={{
                                             colors: formData.gradient_config.colors,
-                                            isStatic: true
+                                            isStatic: true,
+                                            seed: formData.gradient_config.seed
                                         }}
                                         className="w-full h-full"
                                     />

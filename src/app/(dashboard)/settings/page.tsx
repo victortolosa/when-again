@@ -4,9 +4,10 @@ import { useSettings } from '@/components/layout/AppShell';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { SortField, SortDirection } from '@/lib/types';
 
 export default function SettingsPage() {
-    const { showCategories, setShowCategories } = useSettings();
+    const { showCategories, setShowCategories, sortSettings, setSortSettings } = useSettings();
     const { user, signOut } = useAuth();
 
     return (
@@ -35,6 +36,55 @@ export default function SettingsPage() {
                         >
                             {showCategories ? 'On' : 'Off'}
                         </Button>
+                    </div>
+                </div>
+            </Card>
+
+            <Card className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Sorting</h2>
+                <div className="space-y-6">
+                    <div className="space-y-3">
+                        <p className="font-medium">Sort By</p>
+                        <div className="flex gap-2">
+                            <Button
+                                variant={sortSettings.field === 'date' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setSortSettings({ ...sortSettings, field: 'date' })}
+                                className="flex-1"
+                            >
+                                Date
+                            </Button>
+                            <Button
+                                variant={sortSettings.field === 'created_at' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setSortSettings({ ...sortSettings, field: 'created_at' })}
+                                className="flex-1"
+                            >
+                                Created At
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <p className="font-medium">Direction</p>
+                        <div className="flex gap-2">
+                            <Button
+                                variant={sortSettings.direction === 'asc' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setSortSettings({ ...sortSettings, direction: 'asc' })}
+                                className="flex-1"
+                            >
+                                Ascending
+                            </Button>
+                            <Button
+                                variant={sortSettings.direction === 'desc' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setSortSettings({ ...sortSettings, direction: 'desc' })}
+                                className="flex-1"
+                            >
+                                Descending
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </Card>

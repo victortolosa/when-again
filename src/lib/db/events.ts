@@ -59,6 +59,7 @@ export async function createEvent(
         recurrence_rule: data.recurrence_rule,
         category: data.category,
         color_theme: data.color_theme,
+        gradient_config: data.gradient_config,
         created_at: serverTimestamp(),
         updated_at: serverTimestamp(),
     };
@@ -91,6 +92,7 @@ export async function updateEvent(
     if (data.recurrence_rule !== undefined) updateData.recurrence_rule = data.recurrence_rule;
     if (data.category !== undefined) updateData.category = data.category;
     if (data.color_theme !== undefined) updateData.color_theme = data.color_theme;
+    if (data.gradient_config !== undefined) updateData.gradient_config = data.gradient_config;
 
     await updateDoc(docRef, updateData);
 }

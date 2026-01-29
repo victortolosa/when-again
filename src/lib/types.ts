@@ -30,6 +30,16 @@ export interface TrackerFormData {
 // Gradient configuration for backgrounds
 export interface GradientConfig {
     colors: [string, string, string, string];
+    seed?: number; // Seed for mesh gradient pattern consistency
+}
+
+// Sort options for trackers and events
+export type SortField = 'date' | 'created_at';
+export type SortDirection = 'asc' | 'desc';
+
+export interface SortSettings {
+    field: SortField;
+    direction: SortDirection;
 }
 
 // Event Types - Items that repeat based on recurrence rules
