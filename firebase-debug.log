@@ -1,0 +1,125 @@
+[debug] [2026-01-29T05:09:20.535Z] ----------------------------------------------------------------------
+[debug] [2026-01-29T05:09:20.539Z] Command:       /opt/homebrew/Cellar/node/25.2.0/bin/node /opt/homebrew/bin/firebase deploy
+[debug] [2026-01-29T05:09:20.539Z] CLI Version:   15.4.0
+[debug] [2026-01-29T05:09:20.539Z] Platform:      darwin
+[debug] [2026-01-29T05:09:20.539Z] Node Version:  v25.2.0
+[debug] [2026-01-29T05:09:20.539Z] Time:          Wed Jan 28 2026 21:09:20 GMT-0800 (Pacific Standard Time)
+[debug] [2026-01-29T05:09:20.540Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-01-29T05:09:21.240Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-29T05:09:21.240Z] > authorizing via signed-in user (victorj589@gmail.com)
+[debug] [2026-01-29T05:09:21.240Z] [iam] checking project when-again-c78ba for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get",null]
+[debug] [2026-01-29T05:09:21.241Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:21.241Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:21.241Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/when-again-c78ba:testIamPermissions [none]
+[debug] [2026-01-29T05:09:21.241Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/when-again-c78ba:testIamPermissions x-goog-quota-user=projects/when-again-c78ba
+[debug] [2026-01-29T05:09:21.241Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/when-again-c78ba:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get",null]}
+[debug] [2026-01-29T05:09:21.533Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/when-again-c78ba:testIamPermissions 200
+[debug] [2026-01-29T05:09:21.533Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/when-again-c78ba:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-01-29T05:09:21.534Z] [iam] error while checking permissions, command may fail: Authorization failed. This account is missing the following required permissions on project when-again-c78ba:
+
+  
+[info] 
+[info] === Deploying to 'when-again-c78ba'...
+[info] 
+[info] i  deploying firestore, apphosting 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-01-29T05:09:21.538Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:21.538Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:21.538Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/when-again-c78ba/databases/(default) [none]
+[debug] [2026-01-29T05:09:21.955Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/when-again-c78ba/databases/(default) 200
+[debug] [2026-01-29T05:09:21.955Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/when-again-c78ba/databases/(default) {"name":"projects/when-again-c78ba/databases/(default)","uid":"32d68fd4-ce5d-4e25-bcc2-7cb809d4a69b","createTime":"2026-01-29T04:10:42.961430Z","updateTime":"2026-01-29T04:10:42.961430Z","locationId":"nam5","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-01-29T04:10:42.961430Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"s","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IIO5veD9r5IDMMugme3wr5ID"}
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-01-29T05:09:21.957Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:21.957Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:21.957Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/when-again-c78ba:test [none]
+[debug] [2026-01-29T05:09:21.957Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/when-again-c78ba:test [omitted]
+[debug] [2026-01-29T05:09:22.531Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/when-again-c78ba:test 200
+[debug] [2026-01-29T05:09:22.532Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/when-again-c78ba:test {"issues":[{"sourcePosition":{"fileName":"firestore.rules","line":11,"column":14,"currentOffset":293,"endOffset":299},"description":"Unused function: isOwner.","severity":"WARNING"},{"sourcePosition":{"fileName":"firestore.rules","line":12,"column":35,"currentOffset":345,"endOffset":351},"description":"Invalid variable name: request.","severity":"WARNING"}]}
+[warn] ⚠  [W] 11:14 - Unused function: isOwner. 
+[warn] ⚠  [W] 12:35 - Invalid variable name: request. 
+[info] ✔  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2026-01-29T05:09:22.535Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:22.535Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:22.535Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-29T05:09:22.535Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/when-again-c78ba
+[debug] [2026-01-29T05:09:22.979Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-29T05:09:22.979Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-29T05:09:22.980Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:22.980Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:22.980Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/firebaseapphosting.googleapis.com:enable [none]
+[debug] [2026-01-29T05:09:22.980Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/firebaseapphosting.googleapis.com:enable x-goog-quota-user=projects/when-again-c78ba
+[debug] [2026-01-29T05:09:23.579Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/firebaseapphosting.googleapis.com:enable 200
+[debug] [2026-01-29T05:09:23.579Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/firebaseapphosting.googleapis.com:enable [omitted]
+[debug] [2026-01-29T05:09:33.592Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:33.592Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:33.592Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:33.592Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:33.592Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:33.592Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:33.592Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:33.592Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:33.592Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:33.592Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:33.592Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:33.592Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:33.592Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/developerconnect.googleapis.com [none]
+[debug] [2026-01-29T05:09:33.592Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/developerconnect.googleapis.com x-goog-quota-user=projects/when-again-c78ba
+[debug] [2026-01-29T05:09:33.593Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/cloudbuild.googleapis.com [none]
+[debug] [2026-01-29T05:09:33.593Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/cloudbuild.googleapis.com x-goog-quota-user=projects/when-again-c78ba
+[debug] [2026-01-29T05:09:33.593Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/secretmanager.googleapis.com [none]
+[debug] [2026-01-29T05:09:33.593Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/secretmanager.googleapis.com x-goog-quota-user=projects/when-again-c78ba
+[debug] [2026-01-29T05:09:33.594Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/run.googleapis.com [none]
+[debug] [2026-01-29T05:09:33.594Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/run.googleapis.com x-goog-quota-user=projects/when-again-c78ba
+[debug] [2026-01-29T05:09:33.594Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/artifactregistry.googleapis.com [none]
+[debug] [2026-01-29T05:09:33.594Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/artifactregistry.googleapis.com x-goog-quota-user=projects/when-again-c78ba
+[debug] [2026-01-29T05:09:33.595Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/iam.googleapis.com [none]
+[debug] [2026-01-29T05:09:33.595Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/iam.googleapis.com x-goog-quota-user=projects/when-again-c78ba
+[debug] [2026-01-29T05:09:33.983Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/run.googleapis.com 200
+[debug] [2026-01-29T05:09:33.983Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/run.googleapis.com [omitted]
+[debug] [2026-01-29T05:09:34.314Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/cloudbuild.googleapis.com 200
+[debug] [2026-01-29T05:09:34.314Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/cloudbuild.googleapis.com [omitted]
+[debug] [2026-01-29T05:09:34.323Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/developerconnect.googleapis.com 200
+[debug] [2026-01-29T05:09:34.324Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/developerconnect.googleapis.com [omitted]
+[debug] [2026-01-29T05:09:34.324Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:34.324Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:34.324Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/developerconnect.googleapis.com:enable [none]
+[debug] [2026-01-29T05:09:34.324Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/developerconnect.googleapis.com:enable x-goog-quota-user=projects/when-again-c78ba
+[debug] [2026-01-29T05:09:34.326Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/iam.googleapis.com 200
+[debug] [2026-01-29T05:09:34.326Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/iam.googleapis.com [omitted]
+[debug] [2026-01-29T05:09:34.335Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/secretmanager.googleapis.com 200
+[debug] [2026-01-29T05:09:34.335Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/secretmanager.googleapis.com [omitted]
+[debug] [2026-01-29T05:09:34.343Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/artifactregistry.googleapis.com 200
+[debug] [2026-01-29T05:09:34.343Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/artifactregistry.googleapis.com [omitted]
+[debug] [2026-01-29T05:09:34.765Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/developerconnect.googleapis.com:enable 200
+[debug] [2026-01-29T05:09:34.765Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1/projects/when-again-c78ba/services/developerconnect.googleapis.com:enable [omitted]
+[debug] [2026-01-29T05:09:44.776Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:44.776Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:44.777Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/when-again-c78ba/serviceAccounts/firebase-app-hosting-compute@when-again-c78ba.iam.gserviceaccount.com:testIamPermissions [none]
+[debug] [2026-01-29T05:09:44.777Z] >>> [apiv2][(partial)header] POST https://iam.googleapis.com/v1/projects/when-again-c78ba/serviceAccounts/firebase-app-hosting-compute@when-again-c78ba.iam.gserviceaccount.com:testIamPermissions x-goog-quota-user=projects/when-again-c78ba
+[debug] [2026-01-29T05:09:44.777Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/when-again-c78ba/serviceAccounts/firebase-app-hosting-compute@when-again-c78ba.iam.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2026-01-29T05:09:45.010Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/when-again-c78ba/serviceAccounts/firebase-app-hosting-compute@when-again-c78ba.iam.gserviceaccount.com:testIamPermissions 404
+[debug] [2026-01-29T05:09:45.010Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/when-again-c78ba/serviceAccounts/firebase-app-hosting-compute@when-again-c78ba.iam.gserviceaccount.com:testIamPermissions {"error":{"code":404,"message":"Unknown service account","status":"NOT_FOUND"}}
+[debug] [2026-01-29T05:09:45.012Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:45.012Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:45.012Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/when-again-c78ba/serviceAccounts [none]
+[debug] [2026-01-29T05:09:45.012Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/when-again-c78ba/serviceAccounts {"accountId":"firebase-app-hosting-compute","serviceAccount":{"displayName":"Firebase App Hosting compute service account","description":"Default service account used to run builds and deploys for Firebase App Hosting"}}
+[debug] [2026-01-29T05:09:45.672Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/when-again-c78ba/serviceAccounts 200
+[debug] [2026-01-29T05:09:45.672Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/when-again-c78ba/serviceAccounts [omitted]
+[debug] [2026-01-29T05:09:45.673Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:45.673Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:45.673Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/when-again-c78ba:getIamPolicy [none]
+[debug] [2026-01-29T05:09:46.049Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/when-again-c78ba:getIamPolicy 200
+[debug] [2026-01-29T05:09:46.049Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/when-again-c78ba:getIamPolicy {"version":1,"etag":"BwZJf9xpR7o=","bindings":[{"role":"roles/cloudbuild.builds.builder","members":["serviceAccount:690211795551@cloudbuild.gserviceaccount.com"]},{"role":"roles/cloudbuild.serviceAgent","members":["serviceAccount:service-690211795551@gcp-sa-cloudbuild.iam.gserviceaccount.com"]},{"role":"roles/containerregistry.ServiceAgent","members":["serviceAccount:service-690211795551@containerregistry.iam.gserviceaccount.com"]},{"role":"roles/editor","members":["serviceAccount:690211795551-compute@developer.gserviceaccount.com"]},{"role":"roles/firebase.managementServiceAgent","members":["serviceAccount:service-690211795551@gcp-sa-firebase.iam.gserviceaccount.com"]},{"role":"roles/firebase.sdkAdminServiceAgent","members":["serviceAccount:firebase-adminsdk-fbsvc@when-again-c78ba.iam.gserviceaccount.com"]},{"role":"roles/firebaseauth.admin","members":["serviceAccount:firebase-adminsdk-fbsvc@when-again-c78ba.iam.gserviceaccount.com"]},{"role":"roles/firebaserules.system","members":["serviceAccount:service-690211795551@firebase-rules.iam.gserviceaccount.com"]},{"role":"roles/firestore.serviceAgent","members":["serviceAccount:service-690211795551@gcp-sa-firestore.iam.gserviceaccount.com"]},{"role":"roles/iam.serviceAccountTokenCreator","members":["serviceAccount:firebase-adminsdk-fbsvc@when-again-c78ba.iam.gserviceaccount.com"]},{"role":"roles/owner","members":["user:Victorj589@gmail.com"]},{"role":"roles/run.serviceAgent","members":["serviceAccount:service-690211795551@serverless-robot-prod.iam.gserviceaccount.com"]}]}
+[debug] [2026-01-29T05:09:46.050Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:46.050Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:46.050Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/when-again-c78ba:setIamPolicy [none]
+[debug] [2026-01-29T05:09:46.050Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/when-again-c78ba:setIamPolicy {"policy":{"version":1,"etag":"BwZJf9xpR7o=","bindings":[{"role":"roles/cloudbuild.builds.builder","members":["serviceAccount:690211795551@cloudbuild.gserviceaccount.com"]},{"role":"roles/cloudbuild.serviceAgent","members":["serviceAccount:service-690211795551@gcp-sa-cloudbuild.iam.gserviceaccount.com"]},{"role":"roles/containerregistry.ServiceAgent","members":["serviceAccount:service-690211795551@containerregistry.iam.gserviceaccount.com"]},{"role":"roles/editor","members":["serviceAccount:690211795551-compute@developer.gserviceaccount.com"]},{"role":"roles/firebase.managementServiceAgent","members":["serviceAccount:service-690211795551@gcp-sa-firebase.iam.gserviceaccount.com"]},{"role":"roles/firebase.sdkAdminServiceAgent","members":["serviceAccount:firebase-adminsdk-fbsvc@when-again-c78ba.iam.gserviceaccount.com","serviceAccount:firebase-app-hosting-compute@when-again-c78ba.iam.gserviceaccount.com"]},{"role":"roles/firebaseauth.admin","members":["serviceAccount:firebase-adminsdk-fbsvc@when-again-c78ba.iam.gserviceaccount.com"]},{"role":"roles/firebaserules.system","members":["serviceAccount:service-690211795551@firebase-rules.iam.gserviceaccount.com"]},{"role":"roles/firestore.serviceAgent","members":["serviceAccount:service-690211795551@gcp-sa-firestore.iam.gserviceaccount.com"]},{"role":"roles/iam.serviceAccountTokenCreator","members":["serviceAccount:firebase-adminsdk-fbsvc@when-again-c78ba.iam.gserviceaccount.com"]},{"role":"roles/owner","members":["user:Victorj589@gmail.com"]},{"role":"roles/run.serviceAgent","members":["serviceAccount:service-690211795551@serverless-robot-prod.iam.gserviceaccount.com"]},{"role":"roles/firebaseapphosting.computeRunner","members":["serviceAccount:firebase-app-hosting-compute@when-again-c78ba.iam.gserviceaccount.com"]},{"role":"roles/developerconnect.readTokenAccessor","members":["serviceAccount:firebase-app-hosting-compute@when-again-c78ba.iam.gserviceaccount.com"]},{"role":"roles/storage.objectViewer","members":["serviceAccount:firebase-app-hosting-compute@when-again-c78ba.iam.gserviceaccount.com"]}]},"updateMask":"bindings"}
+[debug] [2026-01-29T05:09:46.776Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/when-again-c78ba:setIamPolicy 200
+[debug] [2026-01-29T05:09:46.776Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/when-again-c78ba:setIamPolicy {"version":1,"etag":"BwZJf92J1T4=","bindings":[{"role":"roles/cloudbuild.builds.builder","members":["serviceAccount:690211795551@cloudbuild.gserviceaccount.com"]},{"role":"roles/cloudbuild.serviceAgent","members":["serviceAccount:service-690211795551@gcp-sa-cloudbuild.iam.gserviceaccount.com"]},{"role":"roles/containerregistry.ServiceAgent","members":["serviceAccount:service-690211795551@containerregistry.iam.gserviceaccount.com"]},{"role":"roles/developerconnect.readTokenAccessor","members":["serviceAccount:firebase-app-hosting-compute@when-again-c78ba.iam.gserviceaccount.com"]},{"role":"roles/editor","members":["serviceAccount:690211795551-compute@developer.gserviceaccount.com"]},{"role":"roles/firebase.managementServiceAgent","members":["serviceAccount:service-690211795551@gcp-sa-firebase.iam.gserviceaccount.com"]},{"role":"roles/firebase.sdkAdminServiceAgent","members":["serviceAccount:firebase-adminsdk-fbsvc@when-again-c78ba.iam.gserviceaccount.com","serviceAccount:firebase-app-hosting-compute@when-again-c78ba.iam.gserviceaccount.com"]},{"role":"roles/firebaseapphosting.computeRunner","members":["serviceAccount:firebase-app-hosting-compute@when-again-c78ba.iam.gserviceaccount.com"]},{"role":"roles/firebaseauth.admin","members":["serviceAccount:firebase-adminsdk-fbsvc@when-again-c78ba.iam.gserviceaccount.com"]},{"role":"roles/firebaserules.system","members":["serviceAccount:service-690211795551@firebase-rules.iam.gserviceaccount.com"]},{"role":"roles/firestore.serviceAgent","members":["serviceAccount:service-690211795551@gcp-sa-firestore.iam.gserviceaccount.com"]},{"role":"roles/iam.serviceAccountTokenCreator","members":["serviceAccount:firebase-adminsdk-fbsvc@when-again-c78ba.iam.gserviceaccount.com"]},{"role":"roles/owner","members":["user:Victorj589@gmail.com"]},{"role":"roles/run.serviceAgent","members":["serviceAccount:service-690211795551@serverless-robot-prod.iam.gserviceaccount.com"]},{"role":"roles/storage.objectViewer","members":["serviceAccount:firebase-app-hosting-compute@when-again-c78ba.iam.gserviceaccount.com"]}]}
+[debug] [2026-01-29T05:09:46.776Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:46.777Z] Checked if tokens are valid: true, expires at: 1769666213233
+[debug] [2026-01-29T05:09:46.777Z] >>> [apiv2][query] GET https://firebaseapphosting.googleapis.com/v1beta/projects/when-again-c78ba/locations/-/backends 
+[debug] [2026-01-29T05:09:47.204Z] <<< [apiv2][status] GET https://firebaseapphosting.googleapis.com/v1beta/projects/when-again-c78ba/locations/-/backends 200
+[debug] [2026-01-29T05:09:47.205Z] <<< [apiv2][body] GET https://firebaseapphosting.googleapis.com/v1beta/projects/when-again-c78ba/locations/-/backends {}
