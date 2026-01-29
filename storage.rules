@@ -1,0 +1,39 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isUnder10MB() {
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // Daily entry images
+    match /entries/{userId}/{fileName} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isImage() && isUnder10MB();
+      allow delete: if isOwner(userId);
+    }
+
+    // Milestone images
+    match /milestones/{userId}/{fileName} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isImage() && isUnder10MB();
+      allow delete: if isOwner(userId);
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

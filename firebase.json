@@ -2,6 +2,12 @@
   "firestore": {
     "rules": "firestore.rules"
   },
+  "storage": [
+    {
+      "bucket": "when-again-c78ba.firebasestorage.app",
+      "rules": "storage.rules"
+    }
+  ],
   "apphosting": {
     "backendId": "when-again",
     "rootDir": "./",

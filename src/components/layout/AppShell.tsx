@@ -1,11 +1,33 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, createContext, useContext } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+
+// Context for category settings
+interface SettingsContextType {
+    showCategories: boolean;
+    setShowCategories: (show: boolean) => void;
+}
+
+const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
+
+export function useSettings() {
+    const context = useContext(SettingsContext);
+    if (!context) {
+        throw new Error('useSettings must be used within AppShell');
+    }
+    return context;
+}
 
 const navItems = [
     { href: '/milestones', label: 'Milestones', icon: '📈' },
@@ -17,6 +39,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const { user, signOut, loading } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [showCategories, setShowCategories] = useState(true);
 
     // Auth page renders directly without AppShell wrapper
     if (pathname === '/auth') {
@@ -55,10 +78,31 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="min-h-screen bg-background flex">
             {/* Desktop Sidebar */}
             <aside className="hidden md:flex w-64 flex-col border-r bg-card">
-                <div className="p-6 border-b">
+                <div className="p-6 border-b flex items-center justify-between">
                     <h1 className="text-2xl font-bold text-violet-500">
                         DateKeeper
                     </h1>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                aria-label="Settings"
+                            >
+                                ⚙️
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                                onClick={() => setShowCategories(!showCategories)}
+                                className="cursor-pointer"
+                            >
+                                <span className="mr-2">{showCategories ? '✓' : ' '}</span>
+                                <span>Show Categories</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
 
                 <nav className="flex-1 p-4 space-y-2">
@@ -110,18 +154,34 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <h1 className="text-xl font-bold text-violet-500">
                         DateKeeper
                     </h1>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSidebarOpen(!sidebarOpen)}
-                    >
-                        ☰
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-9 w-9 p-0"
+                                aria-label="Settings"
+                            >
+                                ⚙️
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                                onClick={() => setShowCategories(!showCategories)}
+                                className="cursor-pointer"
+                            >
+                                <span className="mr-2">{showCategories ? '✓' : ' '}</span>
+                                <span>Show Categories</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </header>
 
                 {/* Main Content */}
                 <main className="flex-1 p-4 md:p-8 overflow-auto">
-                    {children}
+                    <SettingsContext.Provider value={{ showCategories, setShowCategories }}>
+                        {children}
+                    </SettingsContext.Provider>
                 </main>
 
                 {/* Mobile Bottom Nav */}

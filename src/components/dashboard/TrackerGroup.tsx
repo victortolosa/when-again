@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Tracker } from '@/lib/types';
 import { TrackerCard } from './TrackerCard';
 
@@ -26,7 +27,9 @@ export function TrackerGroup({
         <div className="space-y-3">
             <button
                 onClick={() => setCollapsed(!collapsed)}
-                className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors w-full"
+                className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors w-full min-h-[44px] touch-manipulation"
+                aria-expanded={!collapsed}
+                aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${category} category`}
             >
                 <span className={`transform transition-transform ${collapsed ? '' : 'rotate-90'}`}>
                     ▶
@@ -52,5 +55,3 @@ export function TrackerGroup({
         </div>
     );
 }
-
-import { useState } from 'react';

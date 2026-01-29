@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { getFirebaseDb } from '@/lib/firebase';
 import { Tracker, TrackerFormData } from '@/lib/types';
+import { deleteMilestoneImage } from '@/lib/storage';
 
 const COLLECTION_NAME = 'trackers';
 
@@ -61,6 +62,7 @@ export async function createTracker(
         type: data.type,
         category: data.category,
         color_theme: data.color_theme,
+        image_url: data.image_url || null,
         created_at: serverTimestamp(),
         updated_at: serverTimestamp(),
     };
@@ -93,11 +95,19 @@ export async function updateTracker(
     if (data.type !== undefined) updateData.type = data.type;
     if (data.category !== undefined) updateData.category = data.category;
     if (data.color_theme !== undefined) updateData.color_theme = data.color_theme;
+    if (data.image_url !== undefined) updateData.image_url = data.image_url || null;
 
     await updateDoc(docRef, updateData);
 }
 
-export async function deleteTracker(trackerId: string): Promise<void> {
+export async function deleteTracker(trackerId: string, imageUrl?: string): Promise<void> {
     const db = getFirebaseDb();
+
+    // Delete the image from storage if it exists
+    if (imageUrl) {
+        await deleteMilestoneImage(imageUrl);
+    }
+
+    // Delete the Firestore document
     await deleteDoc(doc(db, COLLECTION_NAME, trackerId));
 }

@@ -109,3 +109,58 @@ export async function compressImage(
         reader.onerror = reject;
     });
 }
+
+/**
+ * Upload a milestone image to Firebase Storage
+ * @param file - The file to upload
+ * @param userId - The user's ID for organizing storage
+ * @param milestoneId - The milestone ID
+ * @returns The download URL for the uploaded image
+ */
+export async function uploadMilestoneImage(
+    file: File,
+    userId: string,
+    milestoneId: string
+): Promise<string> {
+    const storage = getFirebaseStorage();
+
+    // Create a unique filename
+    const extension = file.name.split('.').pop() || 'jpg';
+    const filename = `${milestoneId}-${Date.now()}.${extension}`;
+
+    // Create the storage reference
+    const storageRef = ref(storage, `milestones/${userId}/${filename}`);
+
+    // Upload the file
+    const snapshot = await uploadBytes(storageRef, file, {
+        contentType: file.type,
+    });
+
+    // Get and return the download URL
+    return getDownloadURL(snapshot.ref);
+}
+
+/**
+ * Delete a milestone image from Firebase Storage
+ * @param imageUrl - The full URL of the image to delete
+ */
+export async function deleteMilestoneImage(imageUrl: string): Promise<void> {
+    try {
+        const storage = getFirebaseStorage();
+        // Extract the path from the URL and create a reference
+        const imageRef = ref(storage, imageUrl);
+        await deleteObject(imageRef);
+    } catch (error) {
+        // Ignore errors if the file doesn't exist
+        console.warn('Failed to delete milestone image:', error);
+    }
+}
+
+/**
+ * Compress a milestone image with optimized settings
+ * @param file - The original file
+ * @returns A compressed Blob
+ */
+export async function compressMilestoneImage(file: File): Promise<Blob> {
+    return compressImage(file, 1920, 0.85);
+}

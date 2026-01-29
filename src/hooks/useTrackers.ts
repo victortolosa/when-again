@@ -67,7 +67,8 @@ export function useDeleteTracker() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (id: string) => deleteTracker(id),
+        mutationFn: ({ id, imageUrl }: { id: string; imageUrl?: string }) =>
+            deleteTracker(id, imageUrl),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['trackers'] });
         },

@@ -9,6 +9,7 @@ export interface Tracker {
     type: 'since' | 'till';
     category: string;
     color_theme: string;
+    image_url?: string;
     created_at: Timestamp;
     updated_at: Timestamp;
 }
@@ -19,6 +20,7 @@ export interface TrackerFormData {
     type: 'since' | 'till';
     category: string;
     color_theme: string;
+    image_url?: string;
 }
 
 // Event Types - Items that repeat based on recurrence rules

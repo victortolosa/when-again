@@ -49,10 +49,10 @@ export default function RecurringPage() {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold">Recurring</h1>
-                <div className="flex items-center gap-4">
+        <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+            <div className="flex items-center justify-between gap-3">
+                <h1 className="text-2xl sm:text-3xl font-bold">Recurring</h1>
+                <div className="flex items-center gap-2 sm:gap-4">
                     <EventForm onSubmit={handleCreateEvent} />
                 </div>
             </div>
