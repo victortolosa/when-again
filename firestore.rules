@@ -48,6 +48,18 @@ service cloud.firestore {
       allow update, delete: if isAuthenticated() && resource.data.user_id == request.auth.uid;
     }
 
+    // Reminders collection
+    match /reminders/{reminderId} {
+      // Users can read their own reminders
+      allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+
+      // Users can create reminders for themselves
+      allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
+
+      // Users can update/delete their own reminders
+      allow update, delete: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+    }
+
     // Deny all other access by default
     match /{document=**} {
       allow read, write: if false;

@@ -37,8 +37,9 @@ export function useSettings() {
 }
 
 const navItems = [
-    { href: '/milestones', label: 'Milestones', icon: '📈' },
+    { href: '/milestones', label: 'Milestones', icon: '📅' },
     { href: '/countdowns', label: 'Countdowns', icon: '⏳' },
+    { href: '/reminders', label: 'Remember', icon: '🧠' },
     // { href: '/recurring', label: 'Recurring', icon: '🔄' }, // Hidden - work in progress
     { href: '/settings', label: 'Settings', icon: '⚙️' },
 ];

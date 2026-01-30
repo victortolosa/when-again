@@ -3,7 +3,7 @@
  */
 
 import { generateUniqueGradient } from './gradient-generator';
-import { Event, Tracker, GradientConfig } from '@/lib/types';
+import { Event, Tracker, Reminder, GradientConfig } from '@/lib/types';
 
 /**
  * Generate a gradient for an existing item based on its ID and title
@@ -96,5 +96,43 @@ export function ensureTrackerHasGradient(tracker: Tracker): Tracker {
   return {
     ...tracker,
     gradient_config: generateGradientForExistingItem(tracker.id, tracker.title),
+  };
+}
+
+/**
+ * Check if a reminder needs a gradient and generate one
+ */
+export function ensureReminderHasGradient(reminder: Reminder): Reminder {
+  // Don't generate gradient if reminder has an image
+  if (reminder.image_url) {
+    return reminder;
+  }
+
+  // Check if gradient exists and has both colors and seed
+  if (reminder.gradient_config?.colors && reminder.gradient_config?.seed !== undefined) {
+    return reminder;
+  }
+
+  // If gradient exists but no seed, add a deterministic seed
+  if (reminder.gradient_config?.colors && reminder.gradient_config?.seed === undefined) {
+    let meshSeed = 0;
+    for (let i = 0; i < reminder.id.length; i++) {
+      const char = reminder.id.charCodeAt(i);
+      meshSeed = ((meshSeed << 5) - meshSeed) + char;
+      meshSeed = meshSeed | 0;
+    }
+    meshSeed = Math.abs(meshSeed);
+    return {
+      ...reminder,
+      gradient_config: {
+        ...reminder.gradient_config,
+        seed: meshSeed
+      }
+    };
+  }
+
+  return {
+    ...reminder,
+    gradient_config: generateGradientForExistingItem(reminder.id, reminder.title),
   };
 }

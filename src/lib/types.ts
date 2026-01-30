@@ -42,6 +42,31 @@ export interface SortSettings {
     direction: SortDirection;
 }
 
+// Reminder Types - Simple reminder notes with dates (separate from trackers)
+export interface Reminder {
+    id: string;
+    user_id: string;
+    title: string;
+    description?: string;
+    date: Timestamp;
+    category: string;
+    color_theme: string;
+    gradient_config?: GradientConfig;
+    image_url?: string;
+    created_at: Timestamp;
+    updated_at: Timestamp;
+}
+
+export interface ReminderFormData {
+    title: string;
+    description?: string;
+    date: Date;
+    category: string;
+    color_theme: string;
+    gradient_config?: GradientConfig;
+    image_url?: string;
+}
+
 // Event Types - Items that repeat based on recurrence rules
 export interface Event {
     id: string;

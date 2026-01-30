@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Button } from './ui/button';
 
 export function PWAUpdatePrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
+  const isUpdatingRef = useRef(false);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
@@ -28,7 +29,10 @@ export function PWAUpdatePrompt() {
 
     // Listen for service worker updates
     const handleControllerChange = () => {
-      setShowPrompt(true);
+      // Only reload if we initiated the update, don't show prompt again
+      if (isUpdatingRef.current) {
+        window.location.reload();
+      }
     };
 
     navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
@@ -62,12 +66,13 @@ export function PWAUpdatePrompt() {
 
   const handleUpdate = () => {
     if (registration?.waiting) {
-      // Tell the waiting service worker to skip waiting and become active
-      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      isUpdatingRef.current = true;
       setShowPrompt(false);
 
-      // Reload the page to use the new service worker
-      window.location.reload();
+      // Tell the waiting service worker to skip waiting and become active
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+
+      // The page will reload when controllerchange event fires
     }
   };
 
