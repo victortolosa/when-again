@@ -205,29 +205,26 @@ export function TrackerCard({ tracker, onEdit, onDelete }: TrackerCardProps) {
                     <div className="flex flex-col items-end shrink-0 gap-1">
                         {/* Single unit or multi-unit display */}
                         {sortedParts.length === 1 ? (
-                            // Single unit: vertical layout with AGO
                             <div className="flex flex-col items-end">
-                                <div className="flex items-baseline gap-1 justify-end">
-                                    <div
-                                        className="font-bold tabular-nums leading-[0.85] text-right text-white text-4xl sm:text-6xl"
-                                        style={{
-                                            textShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                                        }}
-                                    >
-                                        {sortedParts[0].value}
-                                    </div>
+                                <div
+                                    className="font-bold tabular-nums leading-[0.85] text-right text-white text-4xl sm:text-6xl"
+                                    style={{
+                                        textShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                                    }}
+                                >
+                                    {sortedParts[0].value}
+                                </div>
+
+                                <div className="flex items-baseline gap-1 justify-end mt-1">
                                     <span
                                         className="font-semibold text-right text-white text-sm sm:text-base"
                                         style={{
                                             textShadow: '0 2px 8px rgba(0,0,0,0.3)'
                                         }}
                                     >
-                                        {sortedParts[0].label}
+                                        {sortedParts[0].label} ago
                                     </span>
                                 </div>
-                                <span className="text-[9px] sm:text-[10px] text-gray-400 font-medium mt-1">
-                                    AGO
-                                </span>
                             </div>
                         ) : (
                             <>
