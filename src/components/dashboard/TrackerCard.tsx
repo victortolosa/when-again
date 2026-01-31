@@ -222,7 +222,7 @@ export function TrackerCard({ tracker, onEdit, onDelete }: TrackerCardProps) {
                                             textShadow: '0 2px 8px rgba(0,0,0,0.3)'
                                         }}
                                     >
-                                        {sortedParts[0].label} ago
+                                        {sortedParts[0].label} {tracker.type === 'till' ? 'to go' : 'ago'}
                                     </span>
                                 </div>
                             </div>
@@ -244,7 +244,7 @@ export function TrackerCard({ tracker, onEdit, onDelete }: TrackerCardProps) {
                                             textShadow: '0 2px 8px rgba(0,0,0,0.3)'
                                         }}
                                     >
-                                        {sortedParts[0].label}
+                                        {sortedParts[0].label} {tracker.type === 'till' ? 'to go' : 'ago'}
                                     </span>
                                 </div>
 
@@ -287,7 +287,7 @@ export function TrackerCard({ tracker, onEdit, onDelete }: TrackerCardProps) {
                         )}
                     </div>
                 </div>
-            </CardContent>
-        </Card>
+            </CardContent >
+        </Card >
     );
 }
