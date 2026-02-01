@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 
 // Global session cache to track loaded images
@@ -26,20 +26,9 @@ export function CachedImage({
     onError,
     ...props
 }: CachedImageProps) {
-    const isAlreadyCached = imageCache.has(src);
+    const isAlreadyCached = useMemo(() => imageCache.has(src), [src]);
     const [isLoaded, setIsLoaded] = useState(isAlreadyCached);
     const [error, setError] = useState(false);
-
-    useEffect(() => {
-        // Reset state if src changes
-        if (!imageCache.has(src)) {
-            setIsLoaded(false);
-            setError(false);
-        } else {
-            setIsLoaded(true);
-            setError(false);
-        }
-    }, [src]);
 
     const handleLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
         imageCache.add(src);

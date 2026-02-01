@@ -4,7 +4,6 @@ import { Tracker } from '@/lib/types';
 import { differenceInDays, format } from 'date-fns';
 import { getAutoTimeParts } from '@/lib/utils/date';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useSettings } from '@/components/layout/AppShell';
 import { MeshGradientBackground } from '@/components/ui/MeshGradientBackground';

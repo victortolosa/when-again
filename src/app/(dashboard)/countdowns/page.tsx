@@ -1,12 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { TrackerGroup } from '@/components/dashboard/TrackerGroup';
 import { TrackerCard } from '@/components/dashboard/TrackerCard';
 import { TrackerForm } from '@/components/dashboard/TrackerForm';
-import { useTrackers, useCreateTracker, useUpdateTracker, useDeleteTracker } from '@/hooks/useTrackers';
+import { useTrackers, useCreateTracker, useUpdateTracker } from '@/hooks/useTrackers';
 import { Tracker, TrackerFormData } from '@/lib/types';
 import { uploadMilestoneImage, deleteMilestoneImage } from '@/lib/storage';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,13 +15,11 @@ import { ViewSettings } from '@/components/dashboard/ViewSettings';
 
 export default function CountdownsPage() {
     const router = useRouter();
-    const [editingTracker, setEditingTracker] = useState<Tracker | null>(null);
     const { showCategories } = useSettings();
     const { user } = useAuth();
     const { data: trackers = [], isLoading: trackersLoading } = useTrackers();
     const createTracker = useCreateTracker();
     const updateTracker = useUpdateTracker();
-    const deleteTracker = useDeleteTracker();
 
     // Filter for countdowns (type: 'till')
     const countdowns = useMemo(
