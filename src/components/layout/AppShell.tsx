@@ -5,18 +5,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuRadioGroup,
-    DropdownMenuRadioItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+
 import { cn } from '@/lib/utils';
-import { SortSettings, SortField, SortDirection } from '@/lib/types';
+import { SortSettings } from '@/lib/types';
 
 // Context for settings
 interface SettingsContextType {
@@ -40,14 +31,11 @@ const navItems = [
     { href: '/milestones', label: 'Milestones', icon: '📅' },
     { href: '/countdowns', label: 'Countdowns', icon: '⏳' },
     { href: '/reminders', label: 'Remember', icon: '🧠' },
-    // { href: '/recurring', label: 'Recurring', icon: '🔄' }, // Hidden - work in progress
-    { href: '/settings', label: 'Settings', icon: '⚙️' },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const { user, signOut, loading } = useAuth();
-    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showCategories, setShowCategories] = useState(false);
     const [sortSettings, setSortSettingsState] = useState<SortSettings>({
         field: 'date',
@@ -58,7 +46,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     useEffect(() => {
         const savedCategories = localStorage.getItem('showCategories');
         if (savedCategories === 'true') {
-            setShowCategories(true);
+            setTimeout(() => setShowCategories(true), 0);
         }
 
         // Load sort settings
@@ -66,7 +54,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         if (savedSort) {
             try {
                 const parsed = JSON.parse(savedSort);
-                setSortSettingsState(parsed);
+                setTimeout(() => setSortSettingsState(parsed), 0);
             } catch (error) {
                 console.error('Failed to parse sort settings:', error);
             }
@@ -133,47 +121,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <h1 className="text-2xl font-bold text-violet-500">
                         DateKeeper
                     </h1>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                aria-label="Settings"
-                            >
-                                ⚙️
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
-                            <DropdownMenuItem
-                                onClick={() => toggleCategories(!showCategories)}
-                                className="cursor-pointer"
-                            >
-                                <span className="mr-2 w-4">{showCategories ? '✓' : ' '}</span>
-                                <span>Show Categories</span>
-                            </DropdownMenuItem>
-
-                            <DropdownMenuSeparator />
-                            <DropdownMenuLabel>Sort By</DropdownMenuLabel>
-                            <DropdownMenuRadioGroup
-                                value={sortSettings.field}
-                                onValueChange={(value) => updateSortSettings({ ...sortSettings, field: value as SortField })}
-                            >
-                                <DropdownMenuRadioItem value="date">Date</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="created_at">Created At</DropdownMenuRadioItem>
-                            </DropdownMenuRadioGroup>
-
-                            <DropdownMenuSeparator />
-                            <DropdownMenuLabel>Direction</DropdownMenuLabel>
-                            <DropdownMenuRadioGroup
-                                value={sortSettings.direction}
-                                onValueChange={(value) => updateSortSettings({ ...sortSettings, direction: value as SortDirection })}
-                            >
-                                <DropdownMenuRadioItem value="asc">Ascending</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="desc">Descending</DropdownMenuRadioItem>
-                            </DropdownMenuRadioGroup>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
                 </div>
 
                 <nav className="flex-1 p-4 space-y-2">
@@ -222,7 +169,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {/* Mobile Layout - No Header */}
             <div className="flex-1 flex flex-col">
                 {/* Main Content */}
-                <main className="flex-1 p-4 md:p-8 overflow-auto pb-24 md:pb-8">
+                <main className="flex-1 overflow-auto pb-24 md:pb-8">
                     <SettingsContext.Provider value={{
                         showCategories,
                         setShowCategories: toggleCategories,
@@ -233,30 +180,40 @@ export function AppShell({ children }: { children: ReactNode }) {
                     </SettingsContext.Provider>
                 </main>
 
-                {/* Mobile Bottom Nav - Fixed with Glass Effect */}
-                <nav className="md:hidden fixed bottom-0 left-0 right-0 flex justify-center px-[18px] border-t border-white/10 backdrop-blur-xl bg-gradient-to-t from-black/90 via-gray-950/80 to-gray-900/70 z-50">
-                    {/* Noise texture overlay */}
-                    <div
-                        className="absolute inset-0 opacity-[0.03] pointer-events-none blur-[0.5px]"
-                        style={{
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-                            backgroundRepeat: 'repeat',
-                            backgroundSize: '64px 64px',
-                        }}
-                    />
+                {/* iOS 18 Liquid Glass SVG Filters */}
+                <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
+                    <filter id="glass-refraction">
+                        <feTurbulence type="fractalNoise" baseFrequency="0.01 0.1" numOctaves="2" result="noise" />
+                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G" />
+                    </filter>
+                </svg>
+
+                {/* Mobile Bottom Nav - Custom Liquid Glass Effect */}
+                <nav
+                    className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[58%] max-w-[234px] flex justify-center items-center px-5 py-3 rounded-full border-[0.5px] border-white/30 backdrop-blur-[2px] bg-black/5 shadow-[inset_0_1px_2px_rgba(255,255,255,0.4),_0_20px_40px_rgba(0,0,0,0.6)] z-50 ring-[0.5px] ring-white/10 gap-10"
+                    style={{ filter: 'url(#glass-refraction)' }}
+                >
+                    {/* Specular highlight for the top edge */}
+                    <div className="absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-80" />
+
+                    {/* Subtle interior gloss */}
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/10 via-transparent to-white/5 pointer-events-none" />
+
                     {navItems.map((item) => (
                         <Link
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                'relative flex-1 flex flex-col items-center gap-1 py-3 px-2 transition-all duration-200',
+                                'relative flex flex-col items-center gap-1 transition-all duration-300',
                                 pathname === item.href
-                                    ? 'text-violet-400'
-                                    : 'text-gray-400 active:text-gray-300'
+                                    ? 'text-violet-300 scale-110'
+                                    : 'text-white/50 hover:text-white/80 active:scale-95'
                             )}
                         >
-                            <span className="text-xl">{item.icon}</span>
-                            <span className="text-[10px] font-medium">{item.label}</span>
+                            <span className="text-2xl filter drop-shadow-md">{item.icon}</span>
+                            {pathname === item.href && (
+                                <span className="absolute -bottom-2 w-1 h-1 rounded-full bg-violet-400" />
+                            )}
                         </Link>
                     ))}
                 </nav>

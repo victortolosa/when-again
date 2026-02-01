@@ -1,6 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,21 +16,36 @@ import {
     DialogFooter,
     DialogClose,
 } from '@/components/ui/dialog';
-import { TrackerFormData, DEFAULT_CATEGORIES, COLOR_THEMES, GradientConfig } from '@/lib/types';
+import { TrackerFormData, DEFAULT_CATEGORIES, COLOR_THEMES } from '@/lib/types';
+import { generateUniqueGradient } from '@/lib/utils/gradient-generator';
 import { cn } from '@/lib/utils';
-import { convertToJpegIfHeic } from '@/lib/storage';
-import { generateUniqueGradient, generateRandomGradient } from '@/lib/utils/gradient-generator';
-import { MeshGradient } from '@mesh-gradient/react';
 import {
     Tabs,
     TabsList,
     TabsTrigger,
     TabsContent,
 } from '@/components/ui/tabs';
-import ImageCropper from '@/components/ui/ImageCropper';
+import { GradientPicker } from '@/components/ui/params/GradientPicker';
+import { ColorPicker } from '@/components/ui/params/ColorPicker';
+import { ImageUploader } from '@/components/ui/params/ImageUploader';
+
+// Zod Schema
+const trackerSchema = z.object({
+    title: z.string().min(1, 'Title is required'),
+    target_date: z.date(),
+    type: z.enum(['since', 'till']),
+    category: z.string().optional(),
+    color_theme: z.string(),
+    image_url: z.string().optional(),
+    cropped_image_url: z.string().optional(),
+    display_units: z.array(z.enum(['years', 'months', 'days', 'auto'])).optional(),
+    gradient_config: z.any().optional(), // GradientConfig type is complex for zod, using any or custom validation if needed
+});
+
+type TrackerFormSchema = z.infer<typeof trackerSchema>;
 
 interface TrackerFormProps {
-    onSubmit: (data: TrackerFormData, file?: File) => void;
+    onSubmit: (data: TrackerFormData, croppedFile?: File, originalFile?: File) => void;
     initialData?: Partial<TrackerFormData>;
     trigger?: React.ReactNode;
     title?: string;
@@ -52,155 +70,128 @@ export function TrackerForm({
     onOpenChange: controlledOnOpenChange,
 }: TrackerFormProps) {
     const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
-
     const isControlled = controlledOpen !== undefined;
     const open = isControlled ? controlledOpen : uncontrolledOpen;
     const setOpen = isControlled ? controlledOnOpenChange! : setUncontrolledOpen;
+
     // Initialize with local midnight date to avoid timezone issues
-    const getInitialDate = () => {
+    // Initialize with local midnight date to avoid timezone issues
+    const getInitialDate = useCallback(() => {
         if (initialData?.target_date) return initialData.target_date;
         const today = new Date();
         return new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    };
+    }, [initialData?.target_date]);
 
-    const [formData, setFormData] = useState<TrackerFormData>({
-        title: initialData?.title || '',
-        target_date: getInitialDate(),
-        type: initialData?.type || 'since',
-        category: initialData?.category || '',
-        color_theme: initialData?.color_theme || COLOR_THEMES[9], // Default to blue
-        image_url: initialData?.image_url || undefined,
-        display_units: initialData?.display_units || ['days'],
-        gradient_config: initialData?.gradient_config,
+    const {
+        register,
+        control,
+        handleSubmit,
+        setValue,
+        watch,
+        reset,
+        formState: { errors, isSubmitting },
+    } = useForm<TrackerFormSchema>({
+        resolver: zodResolver(trackerSchema),
+        defaultValues: {
+            title: initialData?.title || '',
+            target_date: getInitialDate(),
+            type: initialData?.type || 'since',
+            category: initialData?.category || '',
+            color_theme: initialData?.color_theme || COLOR_THEMES[9],
+            image_url: initialData?.image_url,
+            cropped_image_url: initialData?.cropped_image_url,
+            display_units: initialData?.display_units || ['auto'],
+            gradient_config: initialData?.gradient_config,
+        },
     });
 
-    const handleRegenerateGradient = () => {
-        // Generate new gradient with random harmonious colors and mesh seed
-        const newGradient = generateRandomGradient();
-        setFormData({ ...formData, gradient_config: newGradient });
-    };
-
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(initialData?.image_url || null);
-    const [uploadingImage, setUploadingImage] = useState(false);
+    const [originalFile, setOriginalFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(initialData?.cropped_image_url || initialData?.image_url || null);
     const [imageError, setImageError] = useState<string | null>(null);
     const [customCategory, setCustomCategory] = useState('');
 
-    const [tempImage, setTempImage] = useState<string | null>(null);
-    const [isCropping, setIsCropping] = useState(false);
+    // eslint-disable-next-line react-hooks/incompatible-library
+    const formValues = watch();
 
-    // Update image preview when initialData changes (for edit mode)
+    // Reset form when dialog opens/closes or initialData changes
     useEffect(() => {
-        if (initialData?.image_url) {
-            setImagePreview(initialData.image_url);
+        if (open) {
+            reset({
+                title: initialData?.title || '',
+                target_date: getInitialDate(),
+                type: initialData?.type || 'since',
+                category: initialData?.category || '',
+                color_theme: initialData?.color_theme || COLOR_THEMES[9],
+                image_url: initialData?.image_url,
+                cropped_image_url: initialData?.cropped_image_url,
+                display_units: initialData?.display_units || ['auto'],
+                gradient_config: initialData?.gradient_config,
+            });
+            setImagePreview(initialData?.cropped_image_url || initialData?.image_url || null);
+            setSelectedFile(null);
+            setOriginalFile(null);
+            setImageError(null);
         }
-    }, [initialData?.image_url]);
+    }, [open, initialData, reset, getInitialDate]);
 
-    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        setImageError(null);
-
-        try {
-            // Convert HEIC to JPEG if needed
-            const processedFile = await convertToJpegIfHeic(file);
-
-            // Validate file type
-            const acceptedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-            if (!acceptedTypes.includes(processedFile.type.toLowerCase())) {
-                setImageError('Please select JPG, PNG, WebP, or GIF format');
-                return;
-            }
-
-            // Validate file size (max 10MB)
-            const maxSize = 10 * 1024 * 1024;
-            if (processedFile.size > maxSize) {
-                setImageError('Image size must be less than 10MB');
-                return;
-            }
-
-            // Create temporary preview for the cropper
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                setTempImage(event.target?.result as string);
-                setIsCropping(true);
-            };
-            reader.readAsDataURL(processedFile);
-        } catch (error) {
-            console.error('File processing failed:', error);
-            setImageError('Failed to process image file');
+    const onSubmitHandler = (data: TrackerFormSchema) => {
+        // Only generate a new gradient if one doesn't exist and there's no image
+        let gradientConfig = data.gradient_config;
+        if (!imagePreview && !gradientConfig) {
+            // Generate gradient with harmonious colors based on title + timestamp
+            const colorSeed = data.title + Date.now().toString();
+            gradientConfig = generateUniqueGradient(colorSeed);
         }
+
+        onSubmit({
+            ...data,
+            gradient_config: gradientConfig,
+        } as TrackerFormData, selectedFile || undefined, originalFile || undefined);
+
+        setOpen(false);
     };
 
-    const handleCropComplete = (croppedFile: File) => {
+    const handleImageSelect = () => {
+        // This is handled by ImageUploader via onCropComplete usually, 
+        // but initial file selection is passed here if needed before crop
+        // We might not need this if we rely solely on crop complete
+    };
+
+    const handleCropComplete = (croppedFile: File, original: File) => {
         setSelectedFile(croppedFile);
+        setOriginalFile(original);
         const reader = new FileReader();
         reader.onload = (event) => {
             setImagePreview(event.target?.result as string);
         };
         reader.readAsDataURL(croppedFile);
-        setIsCropping(false);
-        setTempImage(null);
     };
 
-    const handleCropCancel = () => {
-        setIsCropping(false);
-        setTempImage(null);
-    };
-
-    const handleRemoveImage = () => {
+    const handleImageRemove = () => {
         setSelectedFile(null);
+        setOriginalFile(null);
         setImagePreview(null);
-        setFormData({ ...formData, image_url: undefined });
+        setValue('image_url', undefined);
+        setValue('cropped_image_url', undefined);
         setImageError(null);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        // Only generate a new gradient if one doesn't exist and there's no image
-        let gradientConfig = formData.gradient_config;
-        if (!imagePreview && !gradientConfig) {
-            // Generate gradient with harmonious colors based on title + timestamp
-            const colorSeed = formData.title + Date.now().toString();
-            gradientConfig = generateUniqueGradient(colorSeed);
-        }
-
-        onSubmit({
-            ...formData,
-            image_url: imagePreview || undefined,
-            gradient_config: gradientConfig,
-        }, selectedFile || undefined);
-
-        setOpen(false);
-        // Reset form with local midnight date
-        const today = new Date();
-        setFormData({
-            title: '',
-            target_date: new Date(today.getFullYear(), today.getMonth(), today.getDate()),
-            type: 'since',
-            category: '',
-            color_theme: COLOR_THEMES[9],
-            image_url: undefined,
-            display_units: ['days'],
-            gradient_config: undefined,
-        });
-        setSelectedFile(null);
-        setImagePreview(null);
-        setImageError(null);
-    };
+    // Derived state for category UI
+    // Derived state for category UI
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {trigger || <Button>+ New Tracker</Button>}
-            </DialogTrigger>
+            {!isControlled && (
+                <DialogTrigger asChild>
+                    {trigger || <Button>+ New Tracker</Button>}
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                <form onSubmit={handleSubmit(onSubmitHandler)} className="space-y-4 sm:space-y-6">
                     <Tabs defaultValue="general" className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="general">General</TabsTrigger>
@@ -212,22 +203,30 @@ export function TrackerForm({
                             <div className="space-y-2">
                                 <Label>Type</Label>
                                 <div className="flex gap-2">
-                                    <Button
-                                        type="button"
-                                        variant={formData.type === 'since' ? 'default' : 'outline'}
-                                        className="flex-1 min-h-[44px] touch-manipulation"
-                                        onClick={() => setFormData({ ...formData, type: 'since' })}
-                                    >
-                                        📈 Days Since
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant={formData.type === 'till' ? 'default' : 'outline'}
-                                        className="flex-1 min-h-[44px] touch-manipulation"
-                                        onClick={() => setFormData({ ...formData, type: 'till' })}
-                                    >
-                                        ⏳ Days Until
-                                    </Button>
+                                    <Controller
+                                        name="type"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <>
+                                                <Button
+                                                    type="button"
+                                                    variant={field.value === 'since' ? 'default' : 'outline'}
+                                                    className="flex-1 min-h-[44px] touch-manipulation"
+                                                    onClick={() => field.onChange('since')}
+                                                >
+                                                    📈 Days Since
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant={field.value === 'till' ? 'default' : 'outline'}
+                                                    className="flex-1 min-h-[44px] touch-manipulation"
+                                                    onClick={() => field.onChange('till')}
+                                                >
+                                                    ⏳ Days Until
+                                                </Button>
+                                            </>
+                                        )}
+                                    />
                                 </div>
                             </div>
 
@@ -237,61 +236,43 @@ export function TrackerForm({
                                 <Input
                                     id="title"
                                     placeholder="e.g., Quit Smoking, Vacation"
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    required
+                                    {...register('title')}
                                 />
+                                {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
                             </div>
 
                             {/* Date */}
                             <div className="space-y-2">
                                 <Label htmlFor="date">
-                                    {formData.type === 'since' ? 'Start Date' : 'Target Date'}
+                                    {formValues.type === 'since' ? 'Start Date' : 'Target Date'}
                                 </Label>
-                                <Input
-                                    id="date"
-                                    type="date"
-                                    value={formatDateForInput(formData.target_date)}
-                                    onChange={(e) => {
-                                        // Create date at local midnight to avoid timezone issues
-                                        const [year, month, day] = e.target.value.split('-').map(Number);
-                                        const localDate = new Date(year, month - 1, day);
-                                        setFormData({ ...formData, target_date: localDate });
-                                    }}
-                                    required
+                                <Controller
+                                    name="target_date"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Input
+                                            id="date"
+                                            type="date"
+                                            value={formatDateForInput(field.value)}
+                                            onChange={(e) => {
+                                                const [year, month, day] = e.target.value.split('-').map(Number);
+                                                const localDate = new Date(year, month - 1, day);
+                                                field.onChange(localDate);
+                                            }}
+                                        />
+                                    )}
                                 />
                             </div>
 
                             {/* Image Upload */}
-                            <div className="space-y-2">
-                                <Label>Image (Optional)</Label>
-                                {imagePreview ? (
-                                    <div className="relative">
-                                        <img
-                                            src={imagePreview}
-                                            alt="Preview"
-                                            className="w-full aspect-video object-cover rounded-md"
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="destructive"
-                                            size="sm"
-                                            className="absolute top-2 right-2 min-h-[36px] touch-manipulation"
-                                            onClick={handleRemoveImage}
-                                        >
-                                            Remove
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <Input
-                                        type="file"
-                                        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/heic,image/heif"
-                                        onChange={handleFileSelect}
-                                        className="cursor-pointer"
-                                    />
-                                )}
-                                {imageError && <p className="text-xs text-destructive">{imageError}</p>}
-                            </div>
+                            <ImageUploader
+                                imagePreview={imagePreview}
+                                imageError={imageError}
+                                onImageSelect={handleImageSelect}
+                                onImageRemove={handleImageRemove}
+                                onError={setImageError}
+                                onCropComplete={handleCropComplete}
+                            />
                         </TabsContent>
 
                         <TabsContent value="details" className="space-y-4 pt-4">
@@ -299,35 +280,67 @@ export function TrackerForm({
                             <div className="space-y-4">
                                 <Label>Display Units</Label>
                                 <div className="flex flex-wrap gap-2">
-                                    {(['years', 'months', 'days'] as const).map((unit) => {
-                                        const isSelected = formData.display_units?.includes(unit);
-                                        return (
-                                            <Button
-                                                key={unit}
-                                                type="button"
-                                                variant={isSelected ? 'default' : 'outline'}
-                                                size="sm"
-                                                className="min-h-[36px] touch-manipulation capitalize"
-                                                onClick={() => {
-                                                    const current = formData.display_units || ['days'];
-                                                    let next;
-                                                    if (isSelected) {
-                                                        // Don't allow deselecting if it's the only one
-                                                        if (current.length > 1) {
-                                                            next = current.filter(u => u !== unit);
+                                    <Controller
+                                        name="display_units"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <>
+                                                {/* Auto Option */}
+                                                <Button
+                                                    type="button"
+                                                    variant={field.value?.includes('auto') ? 'default' : 'outline'}
+                                                    size="sm"
+                                                    className="min-h-[36px] touch-manipulation capitalize"
+                                                    onClick={() => {
+                                                        const isSelected = field.value?.includes('auto');
+                                                        if (isSelected) {
+                                                            field.onChange(['days']); // Default back to days if unselected
                                                         } else {
-                                                            next = current;
+                                                            field.onChange(['auto']); // 'auto' is exclusive
                                                         }
-                                                    } else {
-                                                        next = [...current, unit];
-                                                    }
-                                                    setFormData({ ...formData, display_units: next });
-                                                }}
-                                            >
-                                                {unit}
-                                            </Button>
-                                        );
-                                    })}
+                                                    }}
+                                                >
+                                                    Auto
+                                                </Button>
+
+                                                {/* Manual Options - Disabled if Auto is selected, or clears Auto if clicked */}
+                                                {(['years', 'months', 'days'] as const).map((unit) => {
+                                                    const current = field.value || [];
+                                                    const isSelected = current.includes(unit);
+                                                    const isAutoSelected = current.includes('auto');
+
+                                                    return (
+                                                        <Button
+                                                            key={unit}
+                                                            type="button"
+                                                            variant={isSelected ? 'default' : 'outline'}
+                                                            size="sm"
+                                                            className={cn(
+                                                                "min-h-[36px] touch-manipulation capitalize",
+                                                                isAutoSelected && "opacity-50"
+                                                            )}
+                                                            onClick={() => {
+                                                                // If clicking a manual unit, remove 'auto' and handle toggling
+                                                                let next = current.filter(u => u !== 'auto');
+
+                                                                if (isSelected) {
+                                                                    // prevent empty selection
+                                                                    if (next.length > 1) {
+                                                                        next = next.filter(u => u !== unit);
+                                                                    }
+                                                                } else {
+                                                                    next = [...next, unit];
+                                                                }
+                                                                field.onChange(next);
+                                                            }}
+                                                        >
+                                                            {unit}
+                                                        </Button>
+                                                    );
+                                                })}
+                                            </>
+                                        )}
+                                    />
                                 </div>
                                 <p className="text-[10px] text-muted-foreground italic">
                                     Choose which units to show on the tracker card.
@@ -338,43 +351,49 @@ export function TrackerForm({
                             <div className="space-y-2">
                                 <Label>Category (Optional)</Label>
                                 <div className="flex flex-wrap gap-2">
-                                    {/* None button */}
-                                    <Button
-                                        type="button"
-                                        variant={!formData.category ? 'default' : 'outline'}
-                                        size="sm"
-                                        className="min-h-[36px] touch-manipulation"
-                                        onClick={() => setFormData({ ...formData, category: '' })}
-                                    >
-                                        None
-                                    </Button>
+                                    <Controller
+                                        name="category"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <>
+                                                <Button
+                                                    type="button"
+                                                    variant={!field.value ? 'default' : 'outline'}
+                                                    size="sm"
+                                                    className="min-h-[36px] touch-manipulation"
+                                                    onClick={() => field.onChange('')}
+                                                >
+                                                    None
+                                                </Button>
 
-                                    {/* Default categories */}
-                                    {DEFAULT_CATEGORIES.map((cat) => (
-                                        <Button
-                                            key={cat.id}
-                                            type="button"
-                                            variant={formData.category === cat.name ? 'default' : 'outline'}
-                                            size="sm"
-                                            className="min-h-[36px] touch-manipulation"
-                                            onClick={() => setFormData({ ...formData, category: cat.name })}
-                                        >
-                                            {cat.name}
-                                        </Button>
-                                    ))}
+                                                {DEFAULT_CATEGORIES.map((cat) => (
+                                                    <Button
+                                                        key={cat.id}
+                                                        type="button"
+                                                        variant={field.value === cat.name ? 'default' : 'outline'}
+                                                        size="sm"
+                                                        className="min-h-[36px] touch-manipulation"
+                                                        onClick={() => field.onChange(cat.name)}
+                                                    >
+                                                        {cat.name}
+                                                    </Button>
+                                                ))}
 
-                                    {/* Show custom category button if it exists and isn't in default list */}
-                                    {formData.category && !DEFAULT_CATEGORIES.some(cat => cat.name === formData.category) && (
-                                        <Button
-                                            type="button"
-                                            variant="default"
-                                            size="sm"
-                                            className="min-h-[36px] touch-manipulation"
-                                            onClick={() => setFormData({ ...formData, category: '' })}
-                                        >
-                                            {formData.category} ✕
-                                        </Button>
-                                    )}
+                                                {/* Show custom category button if it exists and isn't in default list */}
+                                                {field.value && !DEFAULT_CATEGORIES.some(cat => cat.name === field.value) && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="default"
+                                                        size="sm"
+                                                        className="min-h-[36px] touch-manipulation"
+                                                        onClick={() => field.onChange('')}
+                                                    >
+                                                        {field.value} ✕
+                                                    </Button>
+                                                )}
+                                            </>
+                                        )}
+                                    />
                                 </div>
 
                                 {/* Custom category input */}
@@ -387,7 +406,7 @@ export function TrackerForm({
                                             if (e.key === 'Enter') {
                                                 e.preventDefault();
                                                 if (customCategory.trim()) {
-                                                    setFormData({ ...formData, category: customCategory.trim() });
+                                                    setValue('category', customCategory.trim());
                                                     setCustomCategory('');
                                                 }
                                             }
@@ -401,7 +420,7 @@ export function TrackerForm({
                                         className="min-h-[36px] touch-manipulation"
                                         onClick={() => {
                                             if (customCategory.trim()) {
-                                                setFormData({ ...formData, category: customCategory.trim() });
+                                                setValue('category', customCategory.trim());
                                                 setCustomCategory('');
                                             }
                                         }}
@@ -412,69 +431,32 @@ export function TrackerForm({
                                 </div>
                             </div>
 
-                            {/* Gradient Preview & Regenerate - Only show if editing and no image */}
+                            {/* Gradient Picker - Only show if editing and no image */}
                             {initialData && !imagePreview && (
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <Label>Background Gradient</Label>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={handleRegenerateGradient}
-                                        >
-                                            🎨 Regenerate
-                                        </Button>
-                                    </div>
-                                    <div className="relative w-full aspect-video rounded-lg overflow-hidden border">
-                                        {formData.gradient_config?.colors ? (
-                                            <MeshGradient
-                                                options={{
-                                                    colors: formData.gradient_config.colors,
-                                                    isStatic: true,
-                                                    seed: formData.gradient_config.seed
-                                                }}
-                                                className="w-full h-full"
-                                            />
-                                        ) : (
-                                            <div
-                                                className="w-full h-full"
-                                                style={{ backgroundColor: formData.color_theme }}
-                                            />
-                                        )}
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <span className="text-white text-sm font-medium drop-shadow-lg">
-                                                Preview
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Don't like it? Click "Regenerate" for a new gradient
-                                    </p>
-                                </div>
+                                <Controller
+                                    name="gradient_config"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <GradientPicker
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            colorTheme={formValues.color_theme}
+                                        />
+                                    )}
+                                />
                             )}
 
                             {/* Color Theme */}
-                            <div className="space-y-2">
-                                <Label>Color</Label>
-                                <div className="flex flex-wrap gap-2 sm:gap-3">
-                                    {COLOR_THEMES.map((color) => (
-                                        <button
-                                            key={color}
-                                            type="button"
-                                            aria-label={`Select ${color} color`}
-                                            className={cn(
-                                                'w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 transition-transform hover:scale-110 touch-manipulation',
-                                                formData.color_theme === color
-                                                    ? 'border-foreground scale-110'
-                                                    : 'border-transparent'
-                                            )}
-                                            style={{ backgroundColor: color }}
-                                            onClick={() => setFormData({ ...formData, color_theme: color })}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
+                            <Controller
+                                name="color_theme"
+                                control={control}
+                                render={({ field }) => (
+                                    <ColorPicker
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                    />
+                                )}
+                            />
                         </TabsContent>
                     </Tabs>
 
@@ -486,24 +468,14 @@ export function TrackerForm({
                         </DialogClose>
                         <Button
                             type="submit"
-                            disabled={!formData.title || uploadingImage}
+                            disabled={!formValues.title || isSubmitting}
                             className="w-full sm:w-auto min-h-[44px] touch-manipulation"
                         >
-                            {uploadingImage ? 'Uploading...' : (initialData ? 'Save Changes' : 'Create Tracker')}
+                            {isSubmitting ? 'Saving...' : (initialData ? 'Save Changes' : 'Create Tracker')}
                         </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
-
-            {tempImage && (
-                <ImageCropper
-                    image={tempImage}
-                    open={isCropping}
-                    onCropComplete={handleCropComplete}
-                    onCancel={handleCropCancel}
-                    aspect={16 / 9}
-                />
-            )}
         </Dialog>
     );
 }

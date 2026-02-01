@@ -4,14 +4,13 @@ import { useSettings } from '@/components/layout/AppShell';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { SortField, SortDirection } from '@/lib/types';
 
 export default function SettingsPage() {
     const { showCategories, setShowCategories, sortSettings, setSortSettings } = useSettings();
     const { user, signOut } = useAuth();
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 p-4 sm:p-6 pb-24">
             <div>
                 <h1 className="text-3xl font-bold mb-2">Settings</h1>
                 <p className="text-muted-foreground">

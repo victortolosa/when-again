@@ -11,7 +11,7 @@ export function PWAInstallPrompt() {
   useEffect(() => {
     const wasDismissed = localStorage.getItem('pwa-install-dismissed');
     if (wasDismissed) {
-      setDismissed(true);
+      setTimeout(() => setDismissed(true), 0);
     }
   }, []);
 

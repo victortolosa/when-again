@@ -15,14 +15,14 @@ import getCroppedImg from '@/lib/utils/cropUtils';
 interface ImageCropperProps {
     image: string;
     aspect?: number;
-    onCropComplete: (croppedFile: File) => void;
+    onCropComplete: (croppedFile: File, originalFile: File) => void;
     onCancel: () => void;
     open: boolean;
 }
 
 const ImageCropper: React.FC<ImageCropperProps> = ({
     image,
-    aspect = 16 / 9,
+    aspect = 4 / 3,
     onCropComplete,
     onCancel,
     open,
@@ -66,10 +66,19 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
                 0.85 // quality
             );
             if (croppedBlob) {
-                const file = new File([croppedBlob], 'cropped-image.jpg', {
+                const croppedFile = new File([croppedBlob], 'cropped-image.jpg', {
                     type: 'image/jpeg',
                 });
-                onCropComplete(file);
+
+                // Create original file from the input data URL
+                // We assume it's a data URL since it comes from FileReader in the parent
+                const originalResponse = await fetch(image);
+                const originalBlob = await originalResponse.blob();
+                const originalFile = new File([originalBlob], 'original-image.jpg', {
+                    type: originalBlob.type,
+                });
+
+                onCropComplete(croppedFile, originalFile);
             }
         } catch (e) {
             console.error(e);

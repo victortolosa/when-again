@@ -19,9 +19,9 @@ export function OfflineIndicator() {
       setShowOffline(true);
     };
 
-    setIsOnline(navigator.onLine);
+    setTimeout(() => setIsOnline(navigator.onLine), 0);
     if (!navigator.onLine) {
-      setShowOffline(true);
+      setTimeout(() => setShowOffline(true), 0);
     }
 
     window.addEventListener('online', handleOnline);
@@ -47,17 +47,16 @@ export function OfflineIndicator() {
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isOnline
-          ? 'bg-green-500 text-white'
-          : 'bg-orange-500 text-white'
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isOnline
+        ? 'bg-green-500 text-white'
+        : 'bg-orange-500 text-white'
+        }`}
     >
       <div className="container mx-auto px-4 py-2 text-center text-sm font-medium">
         {isOnline ? (
           <>✓ Back online</>
         ) : (
-          <>⚠️ You're offline - Some features may be limited</>
+          <>⚠️ You&apos;re offline - Some features may be limited</>
         )}
       </div>
     </div>

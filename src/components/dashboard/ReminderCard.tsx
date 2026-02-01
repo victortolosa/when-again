@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { MeshGradientBackground } from '@/components/ui/MeshGradientBackground';
+import { CachedImage } from '@/components/ui/CachedImage';
 
 interface ReminderCardProps {
     reminder: Reminder;
@@ -27,14 +28,19 @@ export function ReminderCard({ reminder, onEdit, onDelete }: ReminderCardProps) 
     const formattedDate = format(reminderDate, 'MMM d, yyyy');
 
     return (
-        <Card className="group relative overflow-hidden transition-all hover:shadow-sm min-h-[140px] flex flex-col">
-            {!reminder.image_url && (
-                <MeshGradientBackground gradientConfig={reminder.gradient_config} color={reminder.color_theme} />
-            )}
+        <Card className={cn(
+            "group relative overflow-hidden transition-all hover:shadow-sm flex flex-col",
+            (reminder.cropped_image_url || reminder.image_url) ? "aspect-[4/3]" : "aspect-[2/1]"
+        )}>
+            <MeshGradientBackground gradientConfig={reminder.gradient_config} color={reminder.color_theme} />
 
-            {reminder.image_url && (
+            {(reminder.cropped_image_url || reminder.image_url) && (
                 <div className="absolute inset-0 z-0">
-                    <img src={reminder.image_url} alt={reminder.title} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                    <CachedImage
+                        src={reminder.cropped_image_url || reminder.image_url!}
+                        alt={reminder.title}
+                        className="w-full h-full object-cover"
+                    />
                     <div className="absolute inset-0 bg-black/40" />
                 </div>
             )}
@@ -78,8 +84,8 @@ export function ReminderCard({ reminder, onEdit, onDelete }: ReminderCardProps) 
                     </div>
                     <div className={cn('font-medium tabular-nums px-2 py-0.5 rounded-full',
                         daysDiff < 0 ? 'bg-green-500/20 text-green-300' :
-                        daysDiff === 0 ? 'bg-yellow-500/20 text-yellow-300' :
-                        'bg-blue-500/20 text-blue-300'
+                            daysDiff === 0 ? 'bg-yellow-500/20 text-yellow-300' :
+                                'bg-blue-500/20 text-blue-300'
                     )}>
                         {daysDiff > 0 ? `${daysDiff}d` : daysDiff === 0 ? 'today' : `${Math.abs(daysDiff)}d ago`}
                     </div>

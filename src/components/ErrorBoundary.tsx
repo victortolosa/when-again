@@ -44,7 +44,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="text-6xl">⚠️</div>
             <h1 className="text-2xl font-bold">Something went wrong</h1>
             <p className="text-muted-foreground">
-              We encountered an unexpected error. Don't worry, your data is safe.
+              We encountered an unexpected error. Don&apos;t worry, your data is safe.
             </p>
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <pre className="text-left text-xs bg-muted p-4 rounded-lg overflow-auto max-h-40">

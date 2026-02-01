@@ -62,8 +62,9 @@ export async function createTracker(
         type: data.type,
         category: data.category,
         color_theme: data.color_theme,
-        gradient_config: data.gradient_config,
+        gradient_config: data.gradient_config || null,
         image_url: data.image_url || null,
+        cropped_image_url: data.cropped_image_url || null,
         display_units: data.display_units || ['days'],
         created_at: serverTimestamp(),
         updated_at: serverTimestamp(),
@@ -99,17 +100,18 @@ export async function updateTracker(
     if (data.color_theme !== undefined) updateData.color_theme = data.color_theme;
     if (data.gradient_config !== undefined) updateData.gradient_config = data.gradient_config;
     if (data.image_url !== undefined) updateData.image_url = data.image_url || null;
+    if (data.cropped_image_url !== undefined) updateData.cropped_image_url = data.cropped_image_url || null;
     if (data.display_units !== undefined) updateData.display_units = data.display_units;
 
     await updateDoc(docRef, updateData);
 }
 
-export async function deleteTracker(trackerId: string, imageUrl?: string): Promise<void> {
+export async function deleteTracker(trackerId: string, imageUrl?: string, croppedImageUrl?: string): Promise<void> {
     const db = getFirebaseDb();
 
     // Delete the image from storage if it exists
-    if (imageUrl) {
-        await deleteMilestoneImage(imageUrl);
+    if (imageUrl || croppedImageUrl) {
+        await deleteMilestoneImage(imageUrl, croppedImageUrl);
     }
 
     // Delete the Firestore document

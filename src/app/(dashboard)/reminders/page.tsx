@@ -9,6 +9,7 @@ import { Reminder, ReminderFormData } from '@/lib/types';
 import { uploadMilestoneImage, deleteMilestoneImage } from '@/lib/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/components/layout/AppShell';
+import { ViewSettings } from '@/components/dashboard/ViewSettings';
 
 export default function RemindersPage() {
     const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
@@ -19,7 +20,7 @@ export default function RemindersPage() {
     const updateReminder = useUpdateReminder();
     const deleteReminder = useDeleteReminder();
 
-    const handleCreateReminder = async (data: ReminderFormData, file?: File) => {
+    const handleCreateReminder = async (data: ReminderFormData, croppedFile?: File, originalFile?: File) => {
         try {
             const reminderId = await new Promise<string>((resolve, reject) => {
                 createReminder.mutate(
@@ -31,12 +32,12 @@ export default function RemindersPage() {
                 );
             });
 
-            if (file && user) {
-                const imageUrl = await uploadMilestoneImage(file, user.uid, reminderId);
+            if (croppedFile && originalFile && user) {
+                const { imageUrl, originalImageUrl } = await uploadMilestoneImage(croppedFile, originalFile, user.uid, reminderId);
                 try {
                     await new Promise<void>((resolve, reject) => {
                         updateReminder.mutate(
-                            { id: reminderId, data: { image_url: imageUrl } },
+                            { id: reminderId, data: { image_url: originalImageUrl, cropped_image_url: imageUrl } },
                             {
                                 onError: reject,
                                 onSuccess: () => resolve(),
@@ -44,7 +45,7 @@ export default function RemindersPage() {
                         );
                     });
                 } catch (dbError) {
-                    await deleteMilestoneImage(imageUrl);
+                    await deleteMilestoneImage(originalImageUrl, imageUrl);
                     throw dbError;
                 }
             }
@@ -58,27 +59,33 @@ export default function RemindersPage() {
 
     const handleEditReminder = (reminder: Reminder) => setEditingReminder(reminder);
 
-    const handleUpdateReminder = async (data: ReminderFormData, file?: File) => {
+    const handleUpdateReminder = async (data: ReminderFormData, croppedFile?: File, originalFile?: File) => {
         if (!editingReminder) return;
 
         try {
-            let imageUrl = data.image_url;
-            const oldImageUrl = editingReminder.image_url;
+            let croppedImageUrl = data.cropped_image_url;
+            let originalImageUrl = data.image_url;
+            const oldCroppedImageUrl = editingReminder.cropped_image_url;
+            const oldOriginalImageUrl = editingReminder.image_url;
 
-            if (file && user) {
-                imageUrl = await uploadMilestoneImage(file, user.uid, editingReminder.id);
-                if (oldImageUrl) {
-                    await deleteMilestoneImage(oldImageUrl);
+            if (croppedFile && originalFile && user) {
+                const result = await uploadMilestoneImage(croppedFile, originalFile, user.uid, editingReminder.id);
+                croppedImageUrl = result.imageUrl;
+                originalImageUrl = result.originalImageUrl;
+
+                if (oldOriginalImageUrl || oldCroppedImageUrl) {
+                    await deleteMilestoneImage(oldOriginalImageUrl, oldCroppedImageUrl);
                 }
-            } else if (!data.image_url && oldImageUrl) {
-                await deleteMilestoneImage(oldImageUrl);
-                imageUrl = undefined;
+            } else if (!data.cropped_image_url && (oldOriginalImageUrl || oldCroppedImageUrl)) {
+                await deleteMilestoneImage(oldOriginalImageUrl, oldCroppedImageUrl);
+                croppedImageUrl = undefined;
+                originalImageUrl = undefined;
             }
 
             try {
                 await new Promise<void>((resolve, reject) => {
                     updateReminder.mutate(
-                        { id: editingReminder.id, data: { ...data, image_url: imageUrl } },
+                        { id: editingReminder.id, data: { ...data, cropped_image_url: croppedImageUrl, image_url: originalImageUrl } },
                         {
                             onError: reject,
                             onSuccess: () => resolve(),
@@ -86,8 +93,8 @@ export default function RemindersPage() {
                     );
                 });
             } catch (dbError) {
-                if (file && user && imageUrl) {
-                    await deleteMilestoneImage(imageUrl);
+                if (croppedFile && originalFile && user && croppedImageUrl) {
+                    await deleteMilestoneImage(originalImageUrl, croppedImageUrl);
                 }
                 throw dbError;
             }
@@ -107,7 +114,7 @@ export default function RemindersPage() {
             try {
                 await new Promise<void>((resolve, reject) => {
                     deleteReminder.mutate(
-                        { id, imageUrl: reminder?.image_url },
+                        { id, croppedImageUrl: reminder?.cropped_image_url, imageUrl: reminder?.image_url },
                         {
                             onError: reject,
                             onSuccess: () => resolve(),
@@ -130,10 +137,11 @@ export default function RemindersPage() {
     }
 
     return (
-        <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+        <div className="space-y-4 sm:space-y-6 p-4">
             <div className="flex items-center justify-between gap-3">
                 <h1 className="text-2xl sm:text-3xl font-bold">Remember</h1>
                 <div className="flex items-center gap-2">
+                    <ViewSettings />
                     <ReminderForm
                         onSubmit={handleCreateReminder}
                         trigger={<Button className="touch-manipulation"><span className="hidden sm:inline">+ New Memory</span><span className="sm:hidden">+</span></Button>}
@@ -149,6 +157,7 @@ export default function RemindersPage() {
                                 category: editingReminder.category || '',
                                 color_theme: editingReminder.color_theme,
                                 image_url: editingReminder.image_url,
+                                cropped_image_url: editingReminder.cropped_image_url,
                                 description: editingReminder.description || '',
                             }}
                             open={true}

@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 
 function PWADebugPage() {
   // Lazy import pwa-utils on client side only
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [pwaUtils, setPwaUtils] = useState<any>(null);
 
   useEffect(() => {
@@ -25,21 +26,12 @@ function PWADebugPage() {
     );
   }
 
-  const {
-    isPWA,
-    isOnline,
-    unregisterServiceWorkers,
-    clearAllCaches,
-    getCurrentServiceWorker,
-    forceServiceWorkerUpdate,
-    getCacheSize,
-    formatBytes,
-    pwaDebug,
-  } = pwaUtils;
+
 
   return <PWADebugContent pwaUtils={pwaUtils} />;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function PWADebugContent({ pwaUtils }: { pwaUtils: any }) {
   const {
     isPWA,
@@ -65,8 +57,10 @@ function PWADebugContent({ pwaUtils }: { pwaUtils: any }) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    setIsPWAMode(isPWA());
-    setOnline(isOnline());
+    setTimeout(() => {
+      setIsPWAMode(isPWA());
+      setOnline(isOnline());
+    }, 0);
 
     const checkSW = async () => {
       const sw = await getCurrentServiceWorker();
@@ -86,6 +80,7 @@ function PWADebugContent({ pwaUtils }: { pwaUtils: any }) {
     }, 1000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleUnregisterSW = async () => {

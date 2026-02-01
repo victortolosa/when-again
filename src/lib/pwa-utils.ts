@@ -4,8 +4,10 @@
 
 export function isPWA(): boolean {
   if (typeof window === 'undefined') return false;
+  // Fix for iOS Safari standalone mode
+  const nav = window.navigator as Navigator & { standalone?: boolean };
   return window.matchMedia('(display-mode: standalone)').matches ||
-    (window.navigator as any).standalone === true;
+    nav.standalone === true;
 }
 
 export function isOnline(): boolean {
@@ -59,7 +61,7 @@ export function addNetworkStatusListener(
   onOffline: () => void
 ): () => void {
   if (typeof window === 'undefined') {
-    return () => {};
+    return () => { };
   }
 
   window.addEventListener('online', onOnline);

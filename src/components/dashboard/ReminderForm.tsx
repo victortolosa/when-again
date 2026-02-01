@@ -14,7 +14,7 @@ import {
     DialogFooter,
     DialogClose,
 } from '@/components/ui/dialog';
-import { ReminderFormData, DEFAULT_CATEGORIES, COLOR_THEMES, GradientConfig } from '@/lib/types';
+import { ReminderFormData, DEFAULT_CATEGORIES, COLOR_THEMES } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { convertToJpegIfHeic } from '@/lib/storage';
 import { generateUniqueGradient, generateRandomGradient } from '@/lib/utils/gradient-generator';
@@ -28,7 +28,7 @@ import {
 import ImageCropper from '@/components/ui/ImageCropper';
 
 interface ReminderFormProps {
-    onSubmit: (data: ReminderFormData, file?: File) => void;
+    onSubmit: (data: ReminderFormData, croppedFile?: File, originalFile?: File) => void;
     initialData?: Partial<ReminderFormData>;
     trigger?: React.ReactNode;
     title?: string;
@@ -82,8 +82,9 @@ export function ReminderForm({
     };
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(initialData?.image_url || null);
-    const [uploadingImage, setUploadingImage] = useState(false);
+    const [originalFile, setOriginalFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(initialData?.cropped_image_url || initialData?.image_url || null);
+    const [uploadingImage] = useState(false);
     const [imageError, setImageError] = useState<string | null>(null);
     const [customCategory, setCustomCategory] = useState('');
 
@@ -92,10 +93,17 @@ export function ReminderForm({
 
     // Update image preview when initialData changes (for edit mode)
     useEffect(() => {
-        if (initialData?.image_url) {
-            setImagePreview(initialData.image_url);
+        if (initialData?.cropped_image_url || initialData?.image_url) {
+            setTimeout(() => {
+                setImagePreview(initialData.cropped_image_url || initialData.image_url || null);
+                setFormData(prev => ({
+                    ...prev,
+                    image_url: initialData.image_url,
+                    cropped_image_url: initialData.cropped_image_url
+                }));
+            }, 0);
         }
-    }, [initialData?.image_url]);
+    }, [initialData?.cropped_image_url, initialData?.image_url]);
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -134,8 +142,9 @@ export function ReminderForm({
         }
     };
 
-    const handleCropComplete = (croppedFile: File) => {
+    const handleCropComplete = (croppedFile: File, originalFile: File) => {
         setSelectedFile(croppedFile);
+        setOriginalFile(originalFile);
         const reader = new FileReader();
         reader.onload = (event) => {
             setImagePreview(event.target?.result as string);
@@ -152,8 +161,9 @@ export function ReminderForm({
 
     const handleRemoveImage = () => {
         setSelectedFile(null);
+        setOriginalFile(null);
         setImagePreview(null);
-        setFormData({ ...formData, image_url: undefined });
+        setFormData({ ...formData, image_url: undefined, cropped_image_url: undefined });
         setImageError(null);
     };
 
@@ -170,9 +180,8 @@ export function ReminderForm({
 
         onSubmit({
             ...formData,
-            image_url: imagePreview || undefined,
             gradient_config: gradientConfig,
-        }, selectedFile || undefined);
+        }, selectedFile || undefined, originalFile || undefined);
 
         setOpen(false);
         // Reset form with local midnight date
@@ -187,6 +196,7 @@ export function ReminderForm({
             gradient_config: undefined,
         });
         setSelectedFile(null);
+        setOriginalFile(null);
         setImagePreview(null);
         setImageError(null);
     };
@@ -255,10 +265,11 @@ export function ReminderForm({
                                 <Label>Image (Optional)</Label>
                                 {imagePreview ? (
                                     <div className="relative">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img
                                             src={imagePreview}
                                             alt="Preview"
-                                            className="w-full aspect-video object-cover rounded-md"
+                                            className="w-full aspect-[4/3] object-cover rounded-md"
                                         />
                                         <Button
                                             type="button"
@@ -375,7 +386,7 @@ export function ReminderForm({
                                             🎨 Regenerate
                                         </Button>
                                     </div>
-                                    <div className="relative w-full aspect-video rounded-lg overflow-hidden border">
+                                    <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden border">
                                         {formData.gradient_config?.colors ? (
                                             <MeshGradient
                                                 options={{
@@ -398,7 +409,7 @@ export function ReminderForm({
                                         </div>
                                     </div>
                                     <p className="text-xs text-muted-foreground">
-                                        Don't like it? Click "Regenerate" for a new gradient
+                                        Don&apos;t like it? Click &quot;Regenerate&quot; for a new gradient
                                     </p>
                                 </div>
                             )}
@@ -450,7 +461,7 @@ export function ReminderForm({
                     open={isCropping}
                     onCropComplete={handleCropComplete}
                     onCancel={handleCropCancel}
-                    aspect={16 / 9}
+                    aspect={4 / 3}
                 />
             )}
         </Dialog>

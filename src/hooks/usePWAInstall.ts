@@ -18,7 +18,7 @@ export function usePWAInstall() {
     // Check if already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
     if (isStandalone) {
-      setIsInstalled(true);
+      setTimeout(() => setIsInstalled(true), 0);
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {

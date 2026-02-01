@@ -15,31 +15,37 @@ import heic2any from 'heic2any';
  * @returns The download URL for the uploaded image
  */
 export async function uploadEntryImage(
-    file: File,
+    croppedFile: File,
+    originalFile: File,
     userId: string,
     date: Date
-): Promise<string> {
+): Promise<{ imageUrl: string; originalImageUrl: string }> {
     const storage = getFirebaseStorage();
-
-    // Convert HEIC to JPEG if needed
-    const processedFile = await convertToJpegIfHeic(file);
-
-    // Create a unique filename
     const dateString = date.toISOString().split('T')[0];
-    const extension = processedFile.name.split('.').pop() || 'jpg';
-    const filename = `${dateString}-${Date.now()}.${extension}`;
+    const timestamp = Date.now();
+    const baseFilename = `${dateString}-${timestamp}`;
 
-    // Create the storage reference
-    const storageRef = ref(storage, `entries/${userId}/${filename}`);
-
-    // Upload the file
-    const snapshot = await uploadBytes(storageRef, processedFile, {
-        contentType: processedFile.type,
+    // Upload cropped image
+    const croppedRef = ref(storage, `entries/${userId}/${baseFilename}_cropped.jpg`);
+    const croppedSnapshot = await uploadBytes(croppedRef, croppedFile, {
+        contentType: 'image/jpeg',
         cacheControl: 'public,max-age=31536000',
     });
 
-    // Get and return the download URL
-    return getDownloadURL(snapshot.ref);
+    // Upload original image
+    const originalExtension = originalFile.name.split('.').pop() || 'jpg';
+    const originalRef = ref(storage, `entries/${userId}/${baseFilename}_original.${originalExtension}`);
+    const originalSnapshot = await uploadBytes(originalRef, originalFile, {
+        contentType: originalFile.type,
+        cacheControl: 'public,max-age=31536000',
+    });
+
+    const [imageUrl, originalImageUrl] = await Promise.all([
+        getDownloadURL(croppedSnapshot.ref),
+        getDownloadURL(originalSnapshot.ref),
+    ]);
+
+    return { imageUrl, originalImageUrl };
 }
 
 /**
@@ -78,14 +84,15 @@ export async function convertToJpegIfHeic(file: File): Promise<File> {
  * Delete an image from Firebase Storage
  * @param imageUrl - The full URL of the image to delete
  */
-export async function deleteEntryImage(imageUrl: string): Promise<void> {
+export async function deleteEntryImage(imageUrl: string, originalImageUrl?: string): Promise<void> {
     try {
         const storage = getFirebaseStorage();
-        // Extract the path from the URL and create a reference
-        const imageRef = ref(storage, imageUrl);
-        await deleteObject(imageRef);
+        const deletePromises = [deleteObject(ref(storage, imageUrl))];
+        if (originalImageUrl) {
+            deletePromises.push(deleteObject(ref(storage, originalImageUrl)));
+        }
+        await Promise.all(deletePromises);
     } catch (error) {
-        // Ignore errors if the file doesn't exist
         console.warn('Failed to delete image:', error);
     }
 }
@@ -155,45 +162,70 @@ export async function compressImage(
  * @returns The download URL for the uploaded image
  */
 export async function uploadMilestoneImage(
-    file: File,
+    croppedFile: File,
+    originalFile: File,
     userId: string,
     milestoneId: string
-): Promise<string> {
+): Promise<{ imageUrl: string; originalImageUrl: string }> {
     const storage = getFirebaseStorage();
+    const timestamp = Date.now();
+    const baseFilename = `${milestoneId}-${timestamp}`;
 
-    // Convert HEIC to JPEG if needed
-    const processedFile = await convertToJpegIfHeic(file);
-
-    // Create a unique filename
-    const extension = processedFile.name.split('.').pop() || 'jpg';
-    const filename = `${milestoneId}-${Date.now()}.${extension}`;
-
-    // Create the storage reference
-    const storageRef = ref(storage, `milestones/${userId}/${filename}`);
-
-    // Upload the file
-    const snapshot = await uploadBytes(storageRef, processedFile, {
-        contentType: processedFile.type,
+    // Upload cropped image
+    const croppedRef = ref(storage, `milestones/${userId}/${baseFilename}_cropped.jpg`);
+    const croppedSnapshot = await uploadBytes(croppedRef, croppedFile, {
+        contentType: 'image/jpeg',
         cacheControl: 'public,max-age=31536000',
     });
 
-    // Get and return the download URL
-    return getDownloadURL(snapshot.ref);
+    // Upload original image
+    const originalExtension = originalFile.name.split('.').pop() || 'jpg';
+    const originalRef = ref(storage, `milestones/${userId}/${baseFilename}_original.${originalExtension}`);
+    const originalSnapshot = await uploadBytes(originalRef, originalFile, {
+        contentType: originalFile.type,
+        cacheControl: 'public,max-age=31536000',
+    });
+
+    const [imageUrl, originalImageUrl] = await Promise.all([
+        getDownloadURL(croppedSnapshot.ref),
+        getDownloadURL(originalSnapshot.ref),
+    ]);
+
+    return { imageUrl, originalImageUrl };
 }
 
 /**
  * Delete a milestone image from Firebase Storage
- * @param imageUrl - The full URL of the image to delete
+ * @param originalImageUrl - The full URL of the original image to delete
+ * @param croppedImageUrl - The full URL of the cropped image to delete
  */
-export async function deleteMilestoneImage(imageUrl: string): Promise<void> {
+export async function deleteMilestoneImage(originalImageUrl?: string, croppedImageUrl?: string): Promise<void> {
+    const storage = getFirebaseStorage();
+    const deletePromises: Promise<void>[] = [];
+
+    if (originalImageUrl) {
+        try {
+            deletePromises.push(deleteObject(ref(storage, originalImageUrl)));
+        } catch (error) {
+            console.warn('Error preparing to delete original image:', error);
+        }
+    }
+
+    if (croppedImageUrl) {
+        try {
+            deletePromises.push(deleteObject(ref(storage, croppedImageUrl)));
+        } catch (error) {
+            console.warn('Error preparing to delete cropped image:', error);
+        }
+    }
+
+    if (deletePromises.length === 0) return;
+
     try {
-        const storage = getFirebaseStorage();
-        // Extract the path from the URL and create a reference
-        const imageRef = ref(storage, imageUrl);
-        await deleteObject(imageRef);
+        await Promise.all(deletePromises);
+        console.log('Successfully deleted milestone image assets');
     } catch (error) {
-        // Ignore errors if the file doesn't exist
-        console.warn('Failed to delete milestone image:', error);
+        console.warn('Failed to delete some milestone image assets:', error);
     }
 }
 

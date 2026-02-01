@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { TrackerGroup } from '@/components/dashboard/TrackerGroup';
 import { TrackerCard } from '@/components/dashboard/TrackerCard';
@@ -10,8 +11,10 @@ import { Tracker, TrackerFormData } from '@/lib/types';
 import { uploadMilestoneImage, deleteMilestoneImage } from '@/lib/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/components/layout/AppShell';
+import { ViewSettings } from '@/components/dashboard/ViewSettings';
 
 export default function CountdownsPage() {
+    const router = useRouter();
     const [editingTracker, setEditingTracker] = useState<Tracker | null>(null);
     const { showCategories } = useSettings();
     const { user } = useAuth();
@@ -38,7 +41,7 @@ export default function CountdownsPage() {
     }, [countdowns]);
 
 
-    const handleCreateTracker = async (data: TrackerFormData, file?: File) => {
+    const handleCreateTracker = async (data: TrackerFormData, croppedFile?: File, originalFile?: File) => {
         try {
             // Create tracker first to get ID
             const trackerId = await new Promise<string>((resolve, reject) => {
@@ -52,12 +55,12 @@ export default function CountdownsPage() {
             });
 
             // If file provided: upload → update tracker with image_url
-            if (file && user) {
-                const imageUrl = await uploadMilestoneImage(file, user.uid, trackerId);
+            if (croppedFile && originalFile && user) {
+                const { imageUrl, originalImageUrl } = await uploadMilestoneImage(croppedFile, originalFile, user.uid, trackerId);
                 try {
                     await new Promise<void>((resolve, reject) => {
                         updateTracker.mutate(
-                            { id: trackerId, data: { image_url: imageUrl } },
+                            { id: trackerId, data: { image_url: originalImageUrl, cropped_image_url: imageUrl } },
                             {
                                 onError: reject,
                                 onSuccess: () => resolve(),
@@ -65,8 +68,8 @@ export default function CountdownsPage() {
                         );
                     });
                 } catch (dbError) {
-                    // Cleanup orphan image if DB update failed
-                    await deleteMilestoneImage(imageUrl);
+                    // Cleanup orphan images if DB update failed
+                    await deleteMilestoneImage(originalImageUrl, imageUrl);
                     throw dbError;
                 }
             }
@@ -76,69 +79,11 @@ export default function CountdownsPage() {
         }
     };
 
-    const handleEditTracker = (tracker: Tracker) => {
-        setEditingTracker(tracker);
+    const handleTrackerClick = (tracker: Tracker) => {
+        router.push(`/trackers/${tracker.id}`);
     };
 
-    const handleUpdateTracker = async (data: TrackerFormData, file?: File) => {
-        if (!editingTracker) return;
 
-        try {
-            let imageUrl = data.image_url;
-            const oldImageUrl = editingTracker.image_url;
-
-            // If new file: upload → delete old image if exists
-            if (file && user) {
-                imageUrl = await uploadMilestoneImage(file, user.uid, editingTracker.id);
-
-                if (oldImageUrl) {
-                    await deleteMilestoneImage(oldImageUrl);
-                }
-            }
-            // If image removed: delete old image
-            else if (!data.image_url && oldImageUrl) {
-                await deleteMilestoneImage(oldImageUrl);
-                imageUrl = undefined;
-            }
-
-            // Update tracker with new/removed image_url
-            try {
-                await new Promise<void>((resolve, reject) => {
-                    updateTracker.mutate(
-                        { id: editingTracker.id, data: { ...data, image_url: imageUrl } },
-                        {
-                            onError: reject,
-                            onSuccess: () => resolve(),
-                        }
-                    );
-                });
-            } catch (dbError) {
-                // If we JUST uploaded a new image and the DB update failed, clean it up
-                if (file && user && imageUrl) {
-                    await deleteMilestoneImage(imageUrl);
-                }
-                throw dbError;
-            }
-
-            console.log('Countdown updated successfully');
-            setEditingTracker(null);
-        } catch (error) {
-            console.error('Error updating countdown:', error);
-            alert(`Failed to update countdown: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
-    };
-
-    const handleDeleteTracker = async (id: string) => {
-        const tracker = trackers.find((t) => t.id === id);
-
-        if (confirm('Are you sure you want to delete this countdown?')) {
-            try {
-                deleteTracker.mutate({ id, imageUrl: tracker?.image_url });
-            } catch (error) {
-                console.error('Error deleting countdown:', error);
-            }
-        }
-    };
 
     if (trackersLoading) {
         return (
@@ -149,34 +94,18 @@ export default function CountdownsPage() {
     }
 
     return (
-        <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+        <div className="space-y-4 sm:space-y-6 p-4">
             <div className="flex items-center justify-between gap-3">
                 <h1 className="text-2xl sm:text-3xl font-bold">Countdowns</h1>
                 <div className="flex items-center gap-2">
+                    <ViewSettings />
                     <TrackerForm
                         onSubmit={handleCreateTracker}
                         initialData={{ type: 'till' }}
                         trigger={<Button className="touch-manipulation"><span className="hidden sm:inline">+ New Countdown</span><span className="sm:hidden">+</span></Button>}
                         title="Create Countdown"
                     />
-                    {editingTracker && (
-                        <TrackerForm
-                            key={editingTracker.id}
-                            onSubmit={handleUpdateTracker}
-                            initialData={{
-                                title: editingTracker.title,
-                                target_date: editingTracker.target_date.toDate(),
-                                type: editingTracker.type,
-                                category: editingTracker.category || '',
-                                color_theme: editingTracker.color_theme,
-                                image_url: editingTracker.image_url,
-                                display_units: editingTracker.display_units,
-                            }}
-                            open={true}
-                            onOpenChange={(open) => !open && setEditingTracker(null)}
-                            title="Edit Countdown"
-                        />
-                    )}
+
                 </div>
             </div>
 
@@ -193,8 +122,7 @@ export default function CountdownsPage() {
                                 key={category}
                                 category={category}
                                 trackers={items}
-                                onEdit={handleEditTracker}
-                                onDelete={handleDeleteTracker}
+                                onTrackerClick={handleTrackerClick}
                             />
                         ))}
                     </div>
@@ -204,8 +132,7 @@ export default function CountdownsPage() {
                             <TrackerCard
                                 key={tracker.id}
                                 tracker={tracker}
-                                onEdit={handleEditTracker}
-                                onDelete={handleDeleteTracker}
+                                onClick={() => handleTrackerClick(tracker)}
                             />
                         ))}
                     </div>

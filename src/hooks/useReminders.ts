@@ -106,8 +106,8 @@ export function useDeleteReminder() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ id, imageUrl }: { id: string; imageUrl?: string }) =>
-            deleteReminder(id, imageUrl),
+        mutationFn: ({ id, imageUrl, croppedImageUrl }: { id: string; imageUrl?: string; croppedImageUrl?: string }) =>
+            deleteReminder(id, imageUrl, croppedImageUrl),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['reminders'] });
         },

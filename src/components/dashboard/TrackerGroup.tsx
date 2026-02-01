@@ -7,16 +7,14 @@ import { TrackerCard } from './TrackerCard';
 interface TrackerGroupProps {
     category: string;
     trackers: Tracker[];
-    onEdit?: (tracker: Tracker) => void;
-    onDelete?: (trackerId: string) => void;
+    onTrackerClick?: (tracker: Tracker) => void;
     defaultCollapsed?: boolean;
 }
 
 export function TrackerGroup({
     category,
     trackers,
-    onEdit,
-    onDelete,
+    onTrackerClick,
     defaultCollapsed = false,
 }: TrackerGroupProps) {
     const [collapsed, setCollapsed] = useState(defaultCollapsed);
@@ -46,8 +44,7 @@ export function TrackerGroup({
                         <TrackerCard
                             key={tracker.id}
                             tracker={tracker}
-                            onEdit={onEdit}
-                            onDelete={onDelete}
+                            onClick={onTrackerClick ? () => onTrackerClick(tracker) : undefined}
                         />
                     ))}
                 </div>

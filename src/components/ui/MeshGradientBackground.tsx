@@ -19,7 +19,8 @@ function hexToHsl(hex: string): { h: number; s: number; l: number } {
     const b = parseInt(hex.slice(5, 7), 16) / 255;
 
     const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h = 0, s, l = (max + min) / 2;
+    let h = 0, s;
+    const l = (max + min) / 2;
 
     if (max === min) {
         h = s = 0; // achromatic
@@ -58,7 +59,7 @@ export function MeshGradientBackground({ color, gradientConfig, className }: Mes
             return gradientConfig.colors.join(',');
         }
         return color || 'default';
-    }, [color, gradientConfig?.colors]);
+    }, [color, gradientConfig]);
 
     // Use stored seed if available, otherwise generate from color key
     const seed = useMemo(() => {
@@ -75,7 +76,7 @@ export function MeshGradientBackground({ color, gradientConfig, className }: Mes
             hash = hash | 0; // Convert to 32-bit integer
         }
         return Math.abs(hash);
-    }, [colorKey, gradientConfig?.seed]);
+    }, [colorKey, gradientConfig]);
 
     const colors = useMemo((): [string, string, string, string] => {
         // If gradient config is provided, use it (new behavior)
@@ -105,7 +106,7 @@ export function MeshGradientBackground({ color, gradientConfig, className }: Mes
         const compDarker = hslToHex(compHue, hsl.s, Math.min(hsl.l, 5));
 
         return [baseDark, compliment, primaryDarker, compDarker];
-    }, [colorKey]);
+    }, [color, gradientConfig]);
 
     return (
         <div className={className} style={{ position: 'absolute', inset: 0, zIndex: 0 }}>

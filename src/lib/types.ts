@@ -11,7 +11,8 @@ export interface Tracker {
     color_theme: string;
     gradient_config?: GradientConfig; // New: stores unique gradient colors
     image_url?: string;
-    display_units?: ('years' | 'months' | 'days')[];
+    cropped_image_url?: string;
+    display_units?: ('years' | 'months' | 'days' | 'auto')[];
     created_at: Timestamp;
     updated_at: Timestamp;
 }
@@ -24,7 +25,8 @@ export interface TrackerFormData {
     color_theme: string;
     gradient_config?: GradientConfig;
     image_url?: string;
-    display_units?: ('years' | 'months' | 'days')[];
+    cropped_image_url?: string;
+    display_units?: ('years' | 'months' | 'days' | 'auto')[];
 }
 
 // Gradient configuration for backgrounds
@@ -33,7 +35,7 @@ export interface GradientConfig {
     seed?: number; // Seed for mesh gradient pattern consistency
 }
 
-// Sort options for trackers and events
+// Sort options for trackers
 export type SortField = 'date' | 'created_at';
 export type SortDirection = 'asc' | 'desc';
 
@@ -53,6 +55,7 @@ export interface Reminder {
     color_theme: string;
     gradient_config?: GradientConfig;
     image_url?: string;
+    cropped_image_url?: string;
     created_at: Timestamp;
     updated_at: Timestamp;
 }
@@ -65,30 +68,10 @@ export interface ReminderFormData {
     color_theme: string;
     gradient_config?: GradientConfig;
     image_url?: string;
+    cropped_image_url?: string;
 }
 
-// Event Types - Items that repeat based on recurrence rules
-export interface Event {
-    id: string;
-    user_id: string;
-    title: string;
-    start_date: Timestamp;
-    recurrence_rule: string; // iCal RRule format (e.g., "FREQ=MONTHLY;BYMONTHDAY=1")
-    category: string;
-    color_theme: string; // Legacy field
-    gradient_config?: GradientConfig; // New: stores unique gradient colors
-    created_at: Timestamp;
-    updated_at: Timestamp;
-}
 
-export interface EventFormData {
-    title: string;
-    start_date: Date;
-    recurrence_rule: string;
-    category: string;
-    color_theme: string;
-    gradient_config?: GradientConfig;
-}
 
 // Daily Entry Types - User-generated journal content for specific days
 export interface DailyEntry {
@@ -96,6 +79,7 @@ export interface DailyEntry {
     user_id: string;
     date: Timestamp; // Normalized to midnight UTC
     image_url: string;
+    cropped_image_url?: string;
     notes: string;
     mood_rating?: number; // 1-5
     created_at: Timestamp;
@@ -105,6 +89,8 @@ export interface DailyEntry {
 export interface DailyEntryFormData {
     date: Date;
     image_url?: string;
+    cropped_image_url?: string;
+    user_id: string;
     notes?: string;
     mood_rating?: number;
 }
@@ -127,7 +113,7 @@ export const DEFAULT_CATEGORIES = [
     { id: 'bills', name: 'Bills', color: '#ef4444' },
 ] as const;
 
-// Color themes for trackers/events
+// Color themes for trackers
 export const COLOR_THEMES = [
     '#ef4444', // red
     '#f97316', // orange
