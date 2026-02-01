@@ -3,7 +3,7 @@
  */
 
 import { generateUniqueGradient } from './gradient-generator';
-import { Event, Tracker, Reminder, GradientConfig } from '@/lib/types';
+import { Tracker, Reminder, GradientConfig } from '@/lib/types';
 
 /**
  * Generate a gradient for an existing item based on its ID and title
@@ -26,39 +26,6 @@ export function generateGradientForExistingItem(
   meshSeed = Math.abs(meshSeed);
 
   return generateUniqueGradient(colorSeed, meshSeed);
-}
-
-/**
- * Check if an event needs a gradient and generate one
- */
-export function ensureEventHasGradient(event: Event): Event {
-  // Check if gradient exists and has both colors and seed
-  if (event.gradient_config?.colors && event.gradient_config?.seed !== undefined) {
-    return event;
-  }
-
-  // If gradient exists but no seed, add a deterministic seed
-  if (event.gradient_config?.colors && event.gradient_config?.seed === undefined) {
-    let meshSeed = 0;
-    for (let i = 0; i < event.id.length; i++) {
-      const char = event.id.charCodeAt(i);
-      meshSeed = ((meshSeed << 5) - meshSeed) + char;
-      meshSeed = meshSeed | 0;
-    }
-    meshSeed = Math.abs(meshSeed);
-    return {
-      ...event,
-      gradient_config: {
-        ...event.gradient_config,
-        seed: meshSeed
-      }
-    };
-  }
-
-  return {
-    ...event,
-    gradient_config: generateGradientForExistingItem(event.id, event.title),
-  };
 }
 
 /**
