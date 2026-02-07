@@ -4,7 +4,7 @@ import withPWAInit from "@ducanh2912/next-pwa";
 const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
-  register: true,
+  register: false, // Disabled to fix Firestore/Storage issues
   cacheStartUrl: false,
   dynamicStartUrl: false,
   reloadOnOnline: true,
@@ -39,23 +39,6 @@ const withPWA = withPWAInit({
           expiration: {
             maxEntries: 4,
             maxAgeSeconds: 7 * 24 * 60 * 60, // 1 week
-          },
-        },
-      },
-
-      {
-        // Firebase Storage - prefer fresh images, fall back to cache when offline
-        urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*/i,
-        handler: "NetworkFirst",
-        options: {
-          cacheName: "firebase-storage",
-          networkTimeoutSeconds: 5,
-          expiration: {
-            maxEntries: 200,
-            maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
-          },
-          cacheableResponse: {
-            statuses: [200],
           },
         },
       },
