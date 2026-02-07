@@ -5,6 +5,8 @@ const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
   register: true,
+  cacheStartUrl: false,
+  dynamicStartUrl: false,
   reloadOnOnline: true,
   fallbacks: {
     document: "/offline", // Fallback page when offline
@@ -13,8 +15,9 @@ const withPWA = withPWAInit({
     // Keep development mode until next-pwa/webpack terser early-exit issue is resolved in production mode.
     mode: "development",
     disableDevLogs: true,
-    skipWaiting: false, // Don't auto-skip waiting - let user control updates
-    clientsClaim: false,
+    // Prefer immediate activation to avoid mixed old/new Next.js chunks after deploy.
+    skipWaiting: true,
+    clientsClaim: true,
     // Don't cache opaque responses (CORS errors)
     runtimeCaching: [
       {
