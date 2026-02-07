@@ -8,6 +8,52 @@ import { getFirebaseStorage } from '@/lib/firebase';
 import heic2any from 'heic2any';
 import { logger } from '@/lib/logger';
 
+const refreshedDownloadUrlPromises = new Map<string, Promise<string | null>>();
+
+function getStoragePathFromDownloadUrl(url: string): string | null {
+    try {
+        const parsed = new URL(url);
+
+        // Firebase download URL format:
+        // https://firebasestorage.googleapis.com/v0/b/<bucket>/o/<encodedPath>?alt=media&token=...
+        if (parsed.hostname !== 'firebasestorage.googleapis.com') {
+            return null;
+        }
+
+        const match = parsed.pathname.match(/^\/v0\/b\/[^/]+\/o\/(.+)$/);
+        if (!match) {
+            return null;
+        }
+
+        return decodeURIComponent(match[1]);
+    } catch {
+        return null;
+    }
+}
+
+export async function refreshFirebaseDownloadUrl(url: string): Promise<string | null> {
+    if (typeof window === 'undefined') return null;
+
+    const path = getStoragePathFromDownloadUrl(url);
+    if (!path) return null;
+
+    const cached = refreshedDownloadUrlPromises.get(url);
+    if (cached) return cached;
+
+    const refreshPromise = (async () => {
+        try {
+            const storage = getFirebaseStorage();
+            return await getDownloadURL(ref(storage, path));
+        } catch (error) {
+            logger.warn('Failed to refresh Firebase download URL', { path, url, error });
+            return null;
+        }
+    })();
+
+    refreshedDownloadUrlPromises.set(url, refreshPromise);
+    return refreshPromise;
+}
+
 async function purgeCachedUrls(urls: Array<string | undefined>): Promise<void> {
     if (typeof window === 'undefined' || !('caches' in window)) return;
 

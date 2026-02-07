@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { refreshFirebaseDownloadUrl } from '@/lib/storage';
 
 // Global session cache to track loaded images
 const imageCache = new Set<string>();
@@ -26,17 +27,38 @@ export function CachedImage({
     onError,
     ...props
 }: CachedImageProps) {
-    const isAlreadyCached = useMemo(() => imageCache.has(src), [src]);
+    const [resolvedSrc, setResolvedSrc] = useState(src);
+    const isAlreadyCached = useMemo(() => imageCache.has(resolvedSrc), [resolvedSrc]);
     const [isLoaded, setIsLoaded] = useState(isAlreadyCached);
     const [error, setError] = useState(false);
+    const [didRetry, setDidRetry] = useState(false);
+
+    useEffect(() => {
+        setResolvedSrc(src);
+        setError(false);
+        setDidRetry(false);
+        setIsLoaded(imageCache.has(src));
+    }, [src]);
 
     const handleLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-        imageCache.add(src);
+        imageCache.add(resolvedSrc);
         setIsLoaded(true);
         if (onLoad) onLoad(e);
     };
 
-    const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const handleError = async (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+        if (!didRetry) {
+            setDidRetry(true);
+            const refreshedUrl = await refreshFirebaseDownloadUrl(resolvedSrc);
+
+            if (refreshedUrl && refreshedUrl !== resolvedSrc) {
+                setResolvedSrc(refreshedUrl);
+                setError(false);
+                setIsLoaded(imageCache.has(refreshedUrl));
+                return;
+            }
+        }
+
         setError(true);
         if (onError) onError(e);
     };
@@ -49,7 +71,7 @@ export function CachedImage({
         <div className={cn("relative w-full h-full overflow-hidden", containerClassName)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-                src={src}
+                src={resolvedSrc}
                 alt={alt}
                 className={cn(
                     "w-full h-full object-cover transition-all duration-700 ease-out",
