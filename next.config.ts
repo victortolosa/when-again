@@ -42,19 +42,7 @@ const withPWA = withPWAInit({
           },
         },
       },
-      {
-        // Firebase API calls - network first with fallback
-        urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*/i,
-        handler: "NetworkFirst",
-        options: {
-          cacheName: "firebase-api",
-          networkTimeoutSeconds: 10,
-          expiration: {
-            maxEntries: 50,
-            maxAgeSeconds: 5 * 60, // 5 minutes
-          },
-        },
-      },
+
       {
         // Firebase Storage - prefer fresh images, fall back to cache when offline
         urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*/i,

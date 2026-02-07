@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
     getTrackers,
@@ -14,8 +15,13 @@ import { logger } from '@/lib/logger';
 export function useTrackers() {
     const { user } = useAuth();
     const { sortSettings } = useSettings();
+    const [mounted, setMounted] = useState(false);
 
-    return useQuery({
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const query = useQuery({
         queryKey: ['trackers', user?.uid, sortSettings.field, sortSettings.direction],
         queryFn: async () => {
             const trackers = await getTrackers(user!.uid);
@@ -74,8 +80,20 @@ export function useTrackers() {
 
             return sortedTrackers;
         },
-        enabled: !!user,
+        enabled: !!user && mounted, // Only fetch when mounted and authenticated
     });
+
+    // Force loading state during SSR/hydration to avoid mismatch
+    if (!mounted) {
+        return {
+            ...query,
+            data: [],
+            isLoading: true,
+            isPending: true,
+        };
+    }
+
+    return query;
 }
 
 export function useCreateTracker() {

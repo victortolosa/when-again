@@ -24,6 +24,17 @@ function NotificationBridge({ children }: { children: ReactNode }) {
             BridgeInner.current = mod.default;
             setMounted(true);
         });
+
+        // Temporary: Force unregister service workers to fix Firestore interception issue
+        if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (const registration of registrations) {
+                    // Unregister if it's the next-pwa worker (or any for now to be safe)
+                    console.log('Unregistering SW to fix config:', registration);
+                    registration.unregister();
+                }
+            });
+        }
     }, []);
 
     if (!mounted || !BridgeInner.current) {
@@ -102,6 +113,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         localStorage.setItem('sortSettings', JSON.stringify(settings));
     }, []);
 
+    const settingsValue = useMemo(() => ({
+        showCategories,
+        setShowCategories: toggleCategories,
+        sortSettings,
+        setSortSettings: updateSortSettings
+    }), [showCategories, toggleCategories, sortSettings, updateSortSettings]);
+
     // Auth page renders directly without AppShell wrapper
     if (pathname === '/auth') {
         return <>{children}</>;
@@ -113,10 +131,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <div className="space-y-6 text-center">
                     <div className="relative">
                         <div className="w-16 h-16 mx-auto rounded-full border-4 border-muted border-t-primary animate-spin" />
-                    </div>
-                    <div className="space-y-2">
-                        <div className="h-4 w-32 bg-muted rounded mx-auto animate-pulse" />
-                        <div className="h-3 w-24 bg-muted/60 rounded mx-auto animate-pulse" />
                     </div>
                 </div>
             </div>
@@ -142,13 +156,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
         );
     }
-
-    const settingsValue = useMemo(() => ({
-        showCategories,
-        setShowCategories: toggleCategories,
-        sortSettings,
-        setSortSettings: updateSortSettings
-    }), [showCategories, toggleCategories, sortSettings, updateSortSettings]);
 
     return (
         <SettingsContext.Provider value={settingsValue}>

@@ -67,7 +67,7 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-4274a66a'], (function (workbox) { 'use strict';
+define(['./workbox-182c9715'], (function (workbox) { 'use strict';
 
   importScripts("/fallback-ce627215c0e4a9af.js");
   self.skipWaiting();
@@ -79,6 +79,12 @@ define(['./workbox-4274a66a'], (function (workbox) { 'use strict';
    * See https://goo.gl/S9QRab
    */
   workbox.precacheAndRoute([{
+    "url": "/_next/static/OUcqhHZaWgWtbyH8aQpuE/_buildManifest.js",
+    "revision": "facdd75b6f22d441a0ebe4f21aef2331"
+  }, {
+    "url": "/_next/static/OUcqhHZaWgWtbyH8aQpuE/_ssgManifest.js",
+    "revision": "b6652df95db52feb4daf4eca35380933"
+  }, {
     "url": "/_next/static/chunks/100-817f199ea16e4c8e.js",
     "revision": "817f199ea16e4c8e"
   }, {
@@ -88,14 +94,17 @@ define(['./workbox-4274a66a'], (function (workbox) { 'use strict';
     "url": "/_next/static/chunks/114-49fc1983e4f73447.js",
     "revision": "49fc1983e4f73447"
   }, {
+    "url": "/_next/static/chunks/134-4972ea38d1e60ef3.js",
+    "revision": "4972ea38d1e60ef3"
+  }, {
     "url": "/_next/static/chunks/176-0b6e8f09127683e1.js",
     "revision": "0b6e8f09127683e1"
   }, {
     "url": "/_next/static/chunks/186-47e8dcf0d250550e.js",
     "revision": "47e8dcf0d250550e"
   }, {
-    "url": "/_next/static/chunks/211-31d07818df55b4c4.js",
-    "revision": "31d07818df55b4c4"
+    "url": "/_next/static/chunks/211-feb29acb1fa1c053.js",
+    "revision": "feb29acb1fa1c053"
   }, {
     "url": "/_next/static/chunks/224-6ab2b75fe97c263b.js",
     "revision": "6ab2b75fe97c263b"
@@ -112,8 +121,8 @@ define(['./workbox-4274a66a'], (function (workbox) { 'use strict';
     "url": "/_next/static/chunks/4bd1b696-096d35a2bd1da3af.js",
     "revision": "096d35a2bd1da3af"
   }, {
-    "url": "/_next/static/chunks/532.6ec17fc053195829.js",
-    "revision": "6ec17fc053195829"
+    "url": "/_next/static/chunks/532.49951f09b45499c2.js",
+    "revision": "49951f09b45499c2"
   }, {
     "url": "/_next/static/chunks/53c0104b-6801ec8a152917a8.js",
     "revision": "6801ec8a152917a8"
@@ -121,8 +130,8 @@ define(['./workbox-4274a66a'], (function (workbox) { 'use strict';
     "url": "/_next/static/chunks/5b86099a-9ccbc78208e3d43b.js",
     "revision": "9ccbc78208e3d43b"
   }, {
-    "url": "/_next/static/chunks/70-c24c92fc843ea63a.js",
-    "revision": "c24c92fc843ea63a"
+    "url": "/_next/static/chunks/70-0bb000633b792b96.js",
+    "revision": "0bb000633b792b96"
   }, {
     "url": "/_next/static/chunks/928-2f9cb4ecff5e67b2.js",
     "revision": "2f9cb4ecff5e67b2"
@@ -130,32 +139,29 @@ define(['./workbox-4274a66a'], (function (workbox) { 'use strict';
     "url": "/_next/static/chunks/942-813500cea50c35e7.js",
     "revision": "813500cea50c35e7"
   }, {
-    "url": "/_next/static/chunks/967-5f4a55b507ec12d2.js",
-    "revision": "5f4a55b507ec12d2"
+    "url": "/_next/static/chunks/998-6087c59ea781bb45.js",
+    "revision": "6087c59ea781bb45"
   }, {
-    "url": "/_next/static/chunks/998-0d98364b53b84f17.js",
-    "revision": "0d98364b53b84f17"
-  }, {
-    "url": "/_next/static/chunks/app/(dashboard)/countdowns/page-26b80c031effb8cf.js",
-    "revision": "26b80c031effb8cf"
+    "url": "/_next/static/chunks/app/(dashboard)/countdowns/page-57b91f7f8e19056d.js",
+    "revision": "57b91f7f8e19056d"
   }, {
     "url": "/_next/static/chunks/app/(dashboard)/layout-49ee2b7e2ebba181.js",
     "revision": "49ee2b7e2ebba181"
   }, {
-    "url": "/_next/static/chunks/app/(dashboard)/milestones/page-15d08f66fd45ec21.js",
-    "revision": "15d08f66fd45ec21"
+    "url": "/_next/static/chunks/app/(dashboard)/milestones/page-36e13c0b584bfa45.js",
+    "revision": "36e13c0b584bfa45"
   }, {
     "url": "/_next/static/chunks/app/(dashboard)/page-e0f7eddf3c3b3864.js",
     "revision": "e0f7eddf3c3b3864"
   }, {
-    "url": "/_next/static/chunks/app/(dashboard)/reminders/page-50c07661224338ab.js",
-    "revision": "50c07661224338ab"
+    "url": "/_next/static/chunks/app/(dashboard)/reminders/page-8ccd97e8fe0ab414.js",
+    "revision": "8ccd97e8fe0ab414"
   }, {
     "url": "/_next/static/chunks/app/(dashboard)/settings/page-fac1cb4ecd8ce8ea.js",
     "revision": "fac1cb4ecd8ce8ea"
   }, {
-    "url": "/_next/static/chunks/app/(dashboard)/trackers/%5Bid%5D/page-d8cc4db4f79e32f2.js",
-    "revision": "d8cc4db4f79e32f2"
+    "url": "/_next/static/chunks/app/(dashboard)/trackers/%5Bid%5D/page-fe0b45ab52f52b0a.js",
+    "revision": "fe0b45ab52f52b0a"
   }, {
     "url": "/_next/static/chunks/app/_global-error/page-9be14022a1e4e6c8.js",
     "revision": "9be14022a1e4e6c8"
@@ -211,17 +217,11 @@ define(['./workbox-4274a66a'], (function (workbox) { 'use strict';
     "url": "/_next/static/chunks/polyfills-42372ed130431b0a.js",
     "revision": "846118c33b2c0e922d7b3a7676f81f6f"
   }, {
-    "url": "/_next/static/chunks/webpack-b9ad3ae1cc5c6f10.js",
-    "revision": "b9ad3ae1cc5c6f10"
+    "url": "/_next/static/chunks/webpack-b45b0b1d4783a51a.js",
+    "revision": "b45b0b1d4783a51a"
   }, {
-    "url": "/_next/static/css/004875aa82aa5d8c.css",
-    "revision": "004875aa82aa5d8c"
-  }, {
-    "url": "/_next/static/tEOYiUzKwhlPz0uNoQo84/_buildManifest.js",
-    "revision": "facdd75b6f22d441a0ebe4f21aef2331"
-  }, {
-    "url": "/_next/static/tEOYiUzKwhlPz0uNoQo84/_ssgManifest.js",
-    "revision": "b6652df95db52feb4daf4eca35380933"
+    "url": "/_next/static/css/7dfbe52fc3a9595f.css",
+    "revision": "7dfbe52fc3a9595f"
   }, {
     "url": "/fallback-ce627215c0e4a9af.js",
     "revision": "8d821085767c55683247c66ad6871da9"
@@ -245,7 +245,7 @@ define(['./workbox-4274a66a'], (function (workbox) { 'use strict';
     "revision": "8e061864f388b47f33a1c3780831193e"
   }, {
     "url": "/offline",
-    "revision": "tEOYiUzKwhlPz0uNoQo84"
+    "revision": "OUcqhHZaWgWtbyH8aQpuE"
   }, {
     "url": "/sw-custom.js",
     "revision": "d37bb155dff40673142f4511e53c27e5"
@@ -275,18 +275,6 @@ define(['./workbox-4274a66a'], (function (workbox) { 'use strict';
     plugins: [new workbox.ExpirationPlugin({
       maxEntries: 4,
       maxAgeSeconds: 604800
-    }), {
-      handlerDidError: async ({
-        request: e
-      }) => "undefined" != typeof self ? self.fallback(e) : Response.error()
-    }]
-  }), 'GET');
-  workbox.registerRoute(/^https:\/\/firestore\.googleapis\.com\/.*/i, new workbox.NetworkFirst({
-    "cacheName": "firebase-api",
-    "networkTimeoutSeconds": 10,
-    plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 50,
-      maxAgeSeconds: 300
     }), {
       handlerDidError: async ({
         request: e

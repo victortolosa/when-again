@@ -44,7 +44,12 @@ export async function refreshFirebaseDownloadUrl(url: string): Promise<string | 
         try {
             const storage = getFirebaseStorage();
             return await getDownloadURL(ref(storage, path));
-        } catch (error) {
+        } catch (error: any) {
+            // If the object is not found, it's likely been deleted.
+            // We return null silently to avoid console spam.
+            if (error?.code === 'storage/object-not-found') {
+                return null;
+            }
             logger.warn('Failed to refresh Firebase download URL', { path, url, error });
             return null;
         }

@@ -25,6 +25,11 @@ export default function TrackerDetailsPage() {
 
     const [editingTracker, setEditingTracker] = useState<Tracker | null>(null);
     const [failedSrc, setFailedSrc] = useState<string | null>(null);
+    const [now, setNow] = useState<Date | null>(null);
+
+    useEffect(() => {
+        setNow(new Date());
+    }, []);
 
     // Find the specific tracker
     // Note: In a larger app, we would fetch a single tracker by ID
@@ -137,11 +142,7 @@ export default function TrackerDetailsPage() {
     };
 
     const targetDate = tracker.target_date.toDate();
-    const [now, setNow] = useState<Date | null>(null);
 
-    useEffect(() => {
-        setNow(new Date());
-    }, []);
 
     // Return empty array if not mounted to prevent hydration incorrect text
     const timeParts = now ? getFullTimeParts(now, targetDate) : [];
