@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { useTrackers } from '@/hooks/useTrackers';
 import { useReminders } from '@/hooks/useReminders';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -11,8 +11,10 @@ export default function NotificationBridgeInner({ children }: { children: ReactN
     const { data: reminders } = useReminders();
     const { dueCount } = useNotifications(trackers, reminders);
 
+    const notificationValue = useMemo(() => ({ dueCount }), [dueCount]);
+
     return (
-        <NotificationContext.Provider value={{ dueCount }}>
+        <NotificationContext.Provider value={notificationValue}>
             {children}
         </NotificationContext.Provider>
     );

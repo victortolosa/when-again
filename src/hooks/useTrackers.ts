@@ -16,7 +16,7 @@ export function useTrackers() {
     const { sortSettings } = useSettings();
 
     return useQuery({
-        queryKey: ['trackers', user?.uid, sortSettings],
+        queryKey: ['trackers', user?.uid, sortSettings.field, sortSettings.direction],
         queryFn: async () => {
             const trackers = await getTrackers(user!.uid);
             logger.debug('Fetched trackers', { count: trackers.length });

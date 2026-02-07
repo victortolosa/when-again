@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ReactNode, useState, useContext, useEffect, useRef, createContext } from 'react';
+import React, { ReactNode, useState, useContext, useEffect, useRef, createContext, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -92,15 +92,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     }, []);
 
     // Save to localStorage whenever state changes
-    const toggleCategories = (show: boolean) => {
+    const toggleCategories = useCallback((show: boolean) => {
         setShowCategories(show);
         localStorage.setItem('showCategories', String(show));
-    };
+    }, []);
 
-    const updateSortSettings = (settings: SortSettings) => {
+    const updateSortSettings = useCallback((settings: SortSettings) => {
         setSortSettingsState(settings);
         localStorage.setItem('sortSettings', JSON.stringify(settings));
-    };
+    }, []);
 
     // Auth page renders directly without AppShell wrapper
     if (pathname === '/auth') {
@@ -143,13 +143,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         );
     }
 
+    const settingsValue = useMemo(() => ({
+        showCategories,
+        setShowCategories: toggleCategories,
+        sortSettings,
+        setSortSettings: updateSortSettings
+    }), [showCategories, toggleCategories, sortSettings, updateSortSettings]);
+
     return (
-        <SettingsContext.Provider value={{
-            showCategories,
-            setShowCategories: toggleCategories,
-            sortSettings,
-            setSortSettings: updateSortSettings
-        }}>
+        <SettingsContext.Provider value={settingsValue}>
             <NotificationBridge>
                 <AuthenticatedLayout user={user} signOut={signOut} theme={theme} setTheme={setTheme} pathname={pathname}>
                     {children}
