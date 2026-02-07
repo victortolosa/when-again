@@ -67,7 +67,7 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-182c9715'], (function (workbox) { 'use strict';
+define(['./workbox-fedb67b4'], (function (workbox) { 'use strict';
 
   importScripts("/fallback-ce627215c0e4a9af.js");
   self.skipWaiting();
@@ -79,10 +79,10 @@ define(['./workbox-182c9715'], (function (workbox) { 'use strict';
    * See https://goo.gl/S9QRab
    */
   workbox.precacheAndRoute([{
-    "url": "/_next/static/OUcqhHZaWgWtbyH8aQpuE/_buildManifest.js",
+    "url": "/_next/static/-rVoa_orsAekPYowRW6Dw/_buildManifest.js",
     "revision": "facdd75b6f22d441a0ebe4f21aef2331"
   }, {
-    "url": "/_next/static/OUcqhHZaWgWtbyH8aQpuE/_ssgManifest.js",
+    "url": "/_next/static/-rVoa_orsAekPYowRW6Dw/_ssgManifest.js",
     "revision": "b6652df95db52feb4daf4eca35380933"
   }, {
     "url": "/_next/static/chunks/100-817f199ea16e4c8e.js",
@@ -133,8 +133,8 @@ define(['./workbox-182c9715'], (function (workbox) { 'use strict';
     "url": "/_next/static/chunks/70-0bb000633b792b96.js",
     "revision": "0bb000633b792b96"
   }, {
-    "url": "/_next/static/chunks/928-2f9cb4ecff5e67b2.js",
-    "revision": "2f9cb4ecff5e67b2"
+    "url": "/_next/static/chunks/928-4ab86ff16a9afca5.js",
+    "revision": "4ab86ff16a9afca5"
   }, {
     "url": "/_next/static/chunks/942-813500cea50c35e7.js",
     "revision": "813500cea50c35e7"
@@ -193,8 +193,8 @@ define(['./workbox-182c9715'], (function (workbox) { 'use strict';
     "url": "/_next/static/chunks/framework-75892d61b920805f.js",
     "revision": "75892d61b920805f"
   }, {
-    "url": "/_next/static/chunks/main-a6a33696a2f89e64.js",
-    "revision": "a6a33696a2f89e64"
+    "url": "/_next/static/chunks/main-66bb24cab1328243.js",
+    "revision": "66bb24cab1328243"
   }, {
     "url": "/_next/static/chunks/main-app-dcb5e601105abe8b.js",
     "revision": "dcb5e601105abe8b"
@@ -245,7 +245,7 @@ define(['./workbox-182c9715'], (function (workbox) { 'use strict';
     "revision": "8e061864f388b47f33a1c3780831193e"
   }, {
     "url": "/offline",
-    "revision": "OUcqhHZaWgWtbyH8aQpuE"
+    "revision": "-rVoa_orsAekPYowRW6Dw"
   }, {
     "url": "/sw-custom.js",
     "revision": "d37bb155dff40673142f4511e53c27e5"
@@ -275,20 +275,6 @@ define(['./workbox-182c9715'], (function (workbox) { 'use strict';
     plugins: [new workbox.ExpirationPlugin({
       maxEntries: 4,
       maxAgeSeconds: 604800
-    }), {
-      handlerDidError: async ({
-        request: e
-      }) => "undefined" != typeof self ? self.fallback(e) : Response.error()
-    }]
-  }), 'GET');
-  workbox.registerRoute(/^https:\/\/firebasestorage\.googleapis\.com\/.*/i, new workbox.NetworkFirst({
-    "cacheName": "firebase-storage",
-    "networkTimeoutSeconds": 5,
-    plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 200,
-      maxAgeSeconds: 604800
-    }), new workbox.CacheableResponsePlugin({
-      statuses: [200]
     }), {
       handlerDidError: async ({
         request: e

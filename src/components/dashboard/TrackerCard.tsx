@@ -16,7 +16,8 @@ interface TrackerCardProps {
 }
 
 export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
-    const { } = useSettings();
+    // const { } = useSettings(); // Removed unused hook
+
     const targetDate = tracker.target_date.toDate();
     const today = new Date();
 
