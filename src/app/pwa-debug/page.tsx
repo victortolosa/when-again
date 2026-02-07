@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { CheckCircle, XCircle } from 'lucide-react';
 
 // Disable static generation for this debug page
 export const dynamic = 'force-dynamic';
@@ -170,21 +171,45 @@ function PWADebugContent({ pwaUtils }: { pwaUtils: any }) {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span>Service Workers:</span>
-                <span className="text-green-500">
-                  {'serviceWorker' in navigator ? '✓ Supported' : '✗ Not supported'}
-                </span>
+                {'serviceWorker' in navigator ? (
+                  <span className="inline-flex items-center gap-1 text-green-500">
+                    <CheckCircle className="h-4 w-4" aria-hidden="true" />
+                    <span>Supported</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-red-500">
+                    <XCircle className="h-4 w-4" aria-hidden="true" />
+                    <span>Not supported</span>
+                  </span>
+                )}
               </div>
               <div className="flex justify-between">
                 <span>Cache API:</span>
-                <span className="text-green-500">
-                  {'caches' in window ? '✓ Supported' : '✗ Not supported'}
-                </span>
+                {'caches' in window ? (
+                  <span className="inline-flex items-center gap-1 text-green-500">
+                    <CheckCircle className="h-4 w-4" aria-hidden="true" />
+                    <span>Supported</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-red-500">
+                    <XCircle className="h-4 w-4" aria-hidden="true" />
+                    <span>Not supported</span>
+                  </span>
+                )}
               </div>
               <div className="flex justify-between">
                 <span>Notifications:</span>
-                <span className="text-green-500">
-                  {'Notification' in window ? '✓ Supported' : '✗ Not supported'}
-                </span>
+                {'Notification' in window ? (
+                  <span className="inline-flex items-center gap-1 text-green-500">
+                    <CheckCircle className="h-4 w-4" aria-hidden="true" />
+                    <span>Supported</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-red-500">
+                    <XCircle className="h-4 w-4" aria-hidden="true" />
+                    <span>Not supported</span>
+                  </span>
+                )}
               </div>
             </div>
           </Card>

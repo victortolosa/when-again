@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { Button } from './ui/button';
+import { RefreshCw } from 'lucide-react';
 
 export function PWAUpdatePrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -88,7 +89,9 @@ export function PWAUpdatePrompt() {
     <div className="fixed bottom-4 right-4 z-50 max-w-sm animate-in slide-in-from-bottom-5">
       <div className="bg-card border shadow-lg rounded-lg p-4 space-y-3">
         <div className="flex items-start gap-3">
-          <div className="text-2xl">🔄</div>
+          <div className="mt-0.5">
+            <RefreshCw className="h-5 w-5" aria-hidden="true" />
+          </div>
           <div className="flex-1">
             <h3 className="font-semibold text-sm">Update Available</h3>
             <p className="text-xs text-muted-foreground mt-1">

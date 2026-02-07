@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useSettings } from '@/components/layout/AppShell';
 import { SortField, SortDirection } from '@/lib/types';
+import { Check, Settings } from 'lucide-react';
 
 export function ViewSettings() {
     const { showCategories, setShowCategories, sortSettings, setSortSettings } = useSettings();
@@ -29,8 +30,9 @@ export function ViewSettings() {
                     variant="outline"
                     size="sm"
                     className="h-9 w-9 p-0 border-white/10 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                    aria-label="View settings"
                 >
-                    <span>⚙️</span>
+                    <Settings className="h-4 w-4" aria-hidden="true" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-60 bg-gray-950 border-white/10 text-gray-300 p-2">
@@ -38,7 +40,11 @@ export function ViewSettings() {
                     onClick={() => setShowCategories(!showCategories)}
                     className="cursor-pointer hover:bg-white/5 focus:bg-white/5 py-2.5 px-3 rounded-md"
                 >
-                    <span className="mr-2 w-4">{showCategories ? '✓' : ' '}</span>
+                    {showCategories ? (
+                        <Check className="mr-2 h-4 w-4" aria-hidden="true" />
+                    ) : (
+                        <span className="mr-2 w-4" />
+                    )}
                     <span>Show Categories</span>
                 </DropdownMenuItem>
 
@@ -65,7 +71,7 @@ export function ViewSettings() {
                 <DropdownMenuSeparator className="bg-white/10 my-2" />
                 <Link href="/settings">
                     <DropdownMenuItem className="cursor-pointer hover:bg-white/5 focus:bg-white/5 py-2.5 px-3 rounded-md">
-                        <span className="mr-2">⚙️</span>
+                        <Settings className="mr-2 h-4 w-4" aria-hidden="true" />
                         <span>General Settings</span>
                     </DropdownMenuItem>
                 </Link>

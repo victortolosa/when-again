@@ -10,6 +10,8 @@ const withPWA = withPWAInit({
     document: "/offline", // Fallback page when offline
   },
   workboxOptions: {
+    // Keep development mode until next-pwa/webpack terser early-exit issue is resolved in production mode.
+    mode: "development",
     disableDevLogs: true,
     skipWaiting: false, // Don't auto-skip waiting - let user control updates
     clientsClaim: false,
@@ -51,14 +53,18 @@ const withPWA = withPWAInit({
         },
       },
       {
-        // Firebase Storage - cache images
+        // Firebase Storage - prefer fresh images, fall back to cache when offline
         urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*/i,
-        handler: "CacheFirst",
+        handler: "NetworkFirst",
         options: {
           cacheName: "firebase-storage",
+          networkTimeoutSeconds: 5,
           expiration: {
-            maxEntries: 100,
-            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+            maxEntries: 200,
+            maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+          },
+          cacheableResponse: {
+            statuses: [200],
           },
         },
       },

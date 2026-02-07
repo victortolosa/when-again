@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from 'react';
 import { Reminder } from '@/lib/types';
-import { format } from 'date-fns';
+import { formatDisplayDate } from '@/lib/utils/date';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 import { MeshGradientBackground } from '@/components/ui/MeshGradientBackground';
 import { CachedImage } from '@/components/ui/CachedImage';
+import { Calendar } from 'lucide-react';
 
 interface ReminderCardProps {
     reminder: Reminder;
@@ -24,8 +26,11 @@ export function ReminderCard({ reminder, onEdit, onDelete }: ReminderCardProps) 
     const reminderDate = reminder.date.toDate();
     const today = new Date();
     const daysDiff = Math.ceil((reminderDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
-    const formattedDate = format(reminderDate, 'MMM d, yyyy');
+    const formattedDate = formatDisplayDate(reminderDate);
+
+    const imageSrc = reminder.cropped_image_url || reminder.image_url || null;
 
     return (
         <Card className={cn(
@@ -34,12 +39,13 @@ export function ReminderCard({ reminder, onEdit, onDelete }: ReminderCardProps) 
         )}>
             <MeshGradientBackground gradientConfig={reminder.gradient_config} color={reminder.color_theme} />
 
-            {(reminder.cropped_image_url || reminder.image_url) && (
+            {imageSrc && failedSrc !== imageSrc && (
                 <div className="absolute inset-0 z-0">
                     <CachedImage
-                        src={reminder.cropped_image_url || reminder.image_url!}
+                        src={imageSrc}
                         alt={reminder.title}
                         className="w-full h-full object-cover"
+                        onError={() => setFailedSrc(imageSrc)}
                     />
                     <div className="absolute inset-0 bg-black/40" />
                 </div>
@@ -79,7 +85,7 @@ export function ReminderCard({ reminder, onEdit, onDelete }: ReminderCardProps) 
 
                 <div className="flex items-center justify-between gap-2 text-xs mt-auto">
                     <div className="text-white/80 flex items-center gap-1">
-                        <span>📅</span>
+                        <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
                         <span>{formattedDate}</span>
                     </div>
                     <div className={cn('font-medium tabular-nums px-2 py-0.5 rounded-full',

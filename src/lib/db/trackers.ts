@@ -14,11 +14,12 @@ import {
 import { getFirebaseDb } from '@/lib/firebase';
 import { Tracker, TrackerFormData } from '@/lib/types';
 import { deleteMilestoneImage } from '@/lib/storage';
+import { logger } from '@/lib/logger';
 
 const COLLECTION_NAME = 'trackers';
+const normalizeOptionalString = (value?: string | null) => (value ? value : null);
 
 export async function getTrackers(userId: string): Promise<Tracker[]> {
-    console.log('getTrackers: Querying for userId:', userId);
     const db = getFirebaseDb();
 
     try {
@@ -28,19 +29,16 @@ export async function getTrackers(userId: string): Promise<Tracker[]> {
             orderBy('created_at', 'desc')
         );
 
-        console.log('getTrackers: Executing query...');
         const snapshot = await getDocs(q);
-        console.log('getTrackers: Query returned', snapshot.docs.length, 'documents');
 
         const trackers = snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
         })) as Tracker[];
 
-        console.log('getTrackers: Mapped trackers:', trackers);
         return trackers;
     } catch (error) {
-        console.error('getTrackers: Error fetching trackers:', error);
+        logger.error('Failed to fetch trackers', error);
         throw error;
     }
 }
@@ -49,11 +47,7 @@ export async function createTracker(
     userId: string,
     data: TrackerFormData
 ): Promise<string> {
-    console.log('createTracker called with userId:', userId);
-    console.log('createTracker data:', data);
-
     const db = getFirebaseDb();
-    console.log('Firestore instance:', db);
 
     const trackerData = {
         user_id: userId,
@@ -70,14 +64,11 @@ export async function createTracker(
         updated_at: serverTimestamp(),
     };
 
-    console.log('Writing to Firestore:', trackerData);
-
     try {
         const docRef = await addDoc(collection(db, COLLECTION_NAME), trackerData);
-        console.log('Document created with ID:', docRef.id);
         return docRef.id;
     } catch (error) {
-        console.error('Firestore write error:', error);
+        logger.error('Failed to create tracker', error);
         throw error;
     }
 }
@@ -99,8 +90,12 @@ export async function updateTracker(
     if (data.category !== undefined) updateData.category = data.category;
     if (data.color_theme !== undefined) updateData.color_theme = data.color_theme;
     if (data.gradient_config !== undefined) updateData.gradient_config = data.gradient_config;
-    if (data.image_url !== undefined) updateData.image_url = data.image_url || null;
-    if (data.cropped_image_url !== undefined) updateData.cropped_image_url = data.cropped_image_url || null;
+    if (Object.prototype.hasOwnProperty.call(data, 'image_url')) {
+        updateData.image_url = normalizeOptionalString(data.image_url);
+    }
+    if (Object.prototype.hasOwnProperty.call(data, 'cropped_image_url')) {
+        updateData.cropped_image_url = normalizeOptionalString(data.cropped_image_url);
+    }
     if (data.display_units !== undefined) updateData.display_units = data.display_units;
 
     await updateDoc(docRef, updateData);

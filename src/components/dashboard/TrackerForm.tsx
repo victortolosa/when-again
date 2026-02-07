@@ -28,6 +28,7 @@ import {
 import { GradientPicker } from '@/components/ui/params/GradientPicker';
 import { ColorPicker } from '@/components/ui/params/ColorPicker';
 import { ImageUploader } from '@/components/ui/params/ImageUploader';
+import { Timer, TrendingUp } from 'lucide-react';
 
 // Zod Schema
 const trackerSchema = z.object({
@@ -45,7 +46,7 @@ const trackerSchema = z.object({
 type TrackerFormSchema = z.infer<typeof trackerSchema>;
 
 interface TrackerFormProps {
-    onSubmit: (data: TrackerFormData, croppedFile?: File, originalFile?: File) => void;
+    onSubmit: (data: TrackerFormData, croppedFile?: File, originalFile?: File) => Promise<boolean | void> | boolean | void;
     initialData?: Partial<TrackerFormData>;
     trigger?: React.ReactNode;
     title?: string;
@@ -89,7 +90,7 @@ export function TrackerForm({
         setValue,
         watch,
         reset,
-        formState: { errors, isSubmitting },
+        formState: { errors, isSubmitting, isDirty },
     } = useForm<TrackerFormSchema>({
         resolver: zodResolver(trackerSchema),
         defaultValues: {
@@ -110,13 +111,14 @@ export function TrackerForm({
     const [imagePreview, setImagePreview] = useState<string | null>(initialData?.cropped_image_url || initialData?.image_url || null);
     const [imageError, setImageError] = useState<string | null>(null);
     const [customCategory, setCustomCategory] = useState('');
+    const [hasImageChange, setHasImageChange] = useState(false);
 
     // eslint-disable-next-line react-hooks/incompatible-library
     const formValues = watch();
 
     // Reset form when dialog opens/closes or initialData changes
     useEffect(() => {
-        if (open) {
+        if (open && !isDirty) {
             reset({
                 title: initialData?.title || '',
                 target_date: getInitialDate(),
@@ -132,10 +134,11 @@ export function TrackerForm({
             setSelectedFile(null);
             setOriginalFile(null);
             setImageError(null);
+            setHasImageChange(false);
         }
-    }, [open, initialData, reset, getInitialDate]);
+    }, [open, initialData, reset, getInitialDate, isDirty]);
 
-    const onSubmitHandler = (data: TrackerFormSchema) => {
+    const onSubmitHandler = async (data: TrackerFormSchema) => {
         // Only generate a new gradient if one doesn't exist and there's no image
         let gradientConfig = data.gradient_config;
         if (!imagePreview && !gradientConfig) {
@@ -144,12 +147,18 @@ export function TrackerForm({
             gradientConfig = generateUniqueGradient(colorSeed);
         }
 
-        onSubmit({
+        const result = await onSubmit({
             ...data,
+            // If the user touched the image state (remove/replace), pass undefined values so
+            // the parent update flow can reliably apply the new upload or remove old assets.
+            ...(hasImageChange ? { image_url: undefined, cropped_image_url: undefined } : {}),
             gradient_config: gradientConfig,
         } as TrackerFormData, selectedFile || undefined, originalFile || undefined);
 
-        setOpen(false);
+        if (result !== false) {
+            setHasImageChange(false);
+            setOpen(false);
+        }
     };
 
     const handleImageSelect = () => {
@@ -161,19 +170,23 @@ export function TrackerForm({
     const handleCropComplete = (croppedFile: File, original: File) => {
         setSelectedFile(croppedFile);
         setOriginalFile(original);
+        setHasImageChange(true);
         const reader = new FileReader();
         reader.onload = (event) => {
             setImagePreview(event.target?.result as string);
         };
         reader.readAsDataURL(croppedFile);
+        setValue('image_url', undefined, { shouldDirty: true });
+        setValue('cropped_image_url', undefined, { shouldDirty: true });
     };
 
     const handleImageRemove = () => {
         setSelectedFile(null);
         setOriginalFile(null);
         setImagePreview(null);
-        setValue('image_url', undefined);
-        setValue('cropped_image_url', undefined);
+        setHasImageChange(true);
+        setValue('image_url', undefined, { shouldDirty: true });
+        setValue('cropped_image_url', undefined, { shouldDirty: true });
         setImageError(null);
     };
 
@@ -192,6 +205,8 @@ export function TrackerForm({
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmitHandler)} className="space-y-4 sm:space-y-6">
+                    <input type="hidden" {...register('image_url')} />
+                    <input type="hidden" {...register('cropped_image_url')} />
                     <Tabs defaultValue="general" className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="general">General</TabsTrigger>
@@ -214,7 +229,8 @@ export function TrackerForm({
                                                     className="flex-1 min-h-[44px] touch-manipulation"
                                                     onClick={() => field.onChange('since')}
                                                 >
-                                                    📈 Days Since
+                                                    <TrendingUp className="mr-2 h-4 w-4" aria-hidden="true" />
+                                                    Days Since
                                                 </Button>
                                                 <Button
                                                     type="button"
@@ -222,7 +238,8 @@ export function TrackerForm({
                                                     className="flex-1 min-h-[44px] touch-manipulation"
                                                     onClick={() => field.onChange('till')}
                                                 >
-                                                    ⏳ Days Until
+                                                    <Timer className="mr-2 h-4 w-4" aria-hidden="true" />
+                                                    Days Until
                                                 </Button>
                                             </>
                                         )}
@@ -468,7 +485,7 @@ export function TrackerForm({
                         </DialogClose>
                         <Button
                             type="submit"
-                            disabled={!formValues.title || isSubmitting}
+                            disabled={isSubmitting}
                             className="w-full sm:w-auto min-h-[44px] touch-manipulation"
                         >
                             {isSubmitting ? 'Saving...' : (initialData ? 'Save Changes' : 'Create Tracker')}

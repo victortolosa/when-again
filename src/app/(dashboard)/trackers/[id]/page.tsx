@@ -9,11 +9,11 @@ import { TrackerForm } from '@/components/dashboard/TrackerForm';
 import { MeshGradientBackground } from '@/components/ui/MeshGradientBackground';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit2, Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
-import { getFullTimeParts } from '@/lib/utils/date';
+import { formatDisplayDate, getFullTimeParts } from '@/lib/utils/date';
 import { uploadMilestoneImage, deleteMilestoneImage } from '@/lib/storage';
 import { CachedImage } from '@/components/ui/CachedImage';
 import Link from 'next/link';
+import { logger } from '@/lib/logger';
 
 export default function TrackerDetailsPage() {
     const { id } = useParams();
@@ -24,6 +24,7 @@ export default function TrackerDetailsPage() {
     const deleteTracker = useDeleteTracker();
 
     const [editingTracker, setEditingTracker] = useState<Tracker | null>(null);
+    const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
     // Find the specific tracker
     // Note: In a larger app, we would fetch a single tracker by ID
@@ -35,6 +36,8 @@ export default function TrackerDetailsPage() {
             router.push('/auth');
         }
     }, [authLoading, user, router]);
+
+    const imageSrc = tracker?.cropped_image_url || tracker?.image_url || null;
 
     if (isLoading) {
         return (
@@ -59,33 +62,30 @@ export default function TrackerDetailsPage() {
         );
     }
 
+    const returnPath = tracker.type === 'till' ? '/countdowns' : '/milestones';
+
     const handleUpdateTracker = async (data: TrackerFormData, croppedFile?: File, originalFile?: File) => {
-        if (!tracker) return;
+        if (!tracker) return false;
 
         try {
             let croppedImageUrl = data.cropped_image_url;
             let originalImageUrl = data.image_url;
             const oldCroppedImageUrl = tracker.cropped_image_url;
             const oldOriginalImageUrl = tracker.image_url;
+            const shouldDeleteOldImage = !data.cropped_image_url && !data.image_url && (oldOriginalImageUrl || oldCroppedImageUrl);
+            let uploadedNewImage = false;
 
-            // If new file: upload → delete old image if exists
+            // Upload new image first; only delete old after DB update succeeds.
             if (croppedFile && originalFile && user) {
                 const uploadResult = await uploadMilestoneImage(croppedFile, originalFile, user.uid, tracker.id);
                 croppedImageUrl = uploadResult.imageUrl;
                 originalImageUrl = uploadResult.originalImageUrl;
-
-                if (oldOriginalImageUrl || oldCroppedImageUrl) {
-                    await deleteMilestoneImage(oldOriginalImageUrl, oldCroppedImageUrl);
-                }
-            }
-            // If image removed: delete old image
-            else if (!data.cropped_image_url && (oldOriginalImageUrl || oldCroppedImageUrl)) {
-                await deleteMilestoneImage(oldOriginalImageUrl, oldCroppedImageUrl);
+                uploadedNewImage = true;
+            } else if (shouldDeleteOldImage) {
                 croppedImageUrl = undefined;
                 originalImageUrl = undefined;
             }
 
-            // Update tracker
             try {
                 await new Promise<void>((resolve, reject) => {
                     updateTracker.mutate(
@@ -96,19 +96,23 @@ export default function TrackerDetailsPage() {
                         }
                     );
                 });
+
+                if ((uploadedNewImage || shouldDeleteOldImage) && (oldOriginalImageUrl || oldCroppedImageUrl)) {
+                    await deleteMilestoneImage(oldOriginalImageUrl, oldCroppedImageUrl);
+                }
             } catch (dbError) {
-                // If we JUST uploaded a new image and the DB update failed, clean it up
-                if (croppedFile && originalFile && user && croppedImageUrl) {
+                if (uploadedNewImage) {
                     await deleteMilestoneImage(originalImageUrl, croppedImageUrl);
                 }
                 throw dbError;
             }
 
-            console.log('Tracker updated successfully');
             setEditingTracker(null);
+            return true;
         } catch (error) {
-            console.error('Error updating tracker:', error);
+            logger.error('Error updating tracker', error);
             alert(`Failed to update tracker: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            return false;
         }
     };
 
@@ -125,9 +129,9 @@ export default function TrackerDetailsPage() {
                     }
                 );
             });
-            router.push('/milestones');
+            router.push(returnPath);
         } catch (error) {
-            console.error('Error deleting tracker:', error);
+            logger.error('Error deleting tracker', error);
             alert('Failed to delete tracker');
         }
     };
@@ -143,12 +147,13 @@ export default function TrackerDetailsPage() {
                     gradientConfig={tracker.gradient_config}
                     color={tracker.color_theme}
                 />
-                {(tracker.image_url || tracker.cropped_image_url) && (
+                {imageSrc && failedSrc !== imageSrc && (
                     <>
                         <CachedImage
-                            src={tracker.image_url || tracker.cropped_image_url!}
+                            src={imageSrc}
                             alt={tracker.title}
                             className="w-full h-full object-cover"
+                            onError={() => setFailedSrc(imageSrc)}
                         />
                         <div className="absolute inset-0 bg-black/60" />
                     </>
@@ -159,7 +164,7 @@ export default function TrackerDetailsPage() {
             <div className="relative z-10 min-h-screen flex flex-col p-4 max-w-5xl mx-auto">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-12">
-                    <Link href="/milestones">
+                    <Link href={returnPath}>
                         <Button variant="ghost" className="text-white hover:bg-white/20 -ml-4">
                             <ArrowLeft className="mr-2 h-5 w-5" /> Back
                         </Button>
@@ -212,7 +217,7 @@ export default function TrackerDetailsPage() {
                                 ))}
                             </div>
                             <p className="text-lg text-white/60 font-medium ml-1 mt-4">
-                                {format(targetDate, 'MMMM d, yyyy')}
+                                {formatDisplayDate(targetDate)}
                             </p>
                         </div>
                     </div>
@@ -230,6 +235,7 @@ export default function TrackerDetailsPage() {
                         type: editingTracker.type,
                         category: editingTracker.category || '',
                         color_theme: editingTracker.color_theme,
+                        gradient_config: editingTracker.gradient_config,
                         cropped_image_url: editingTracker.cropped_image_url,
                         image_url: editingTracker.image_url,
                         display_units: editingTracker.display_units,

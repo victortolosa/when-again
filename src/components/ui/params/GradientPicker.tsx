@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { generateRandomGradient } from '@/lib/utils/gradient-generator';
 import { GradientConfig } from '@/lib/types';
 import { MeshGradient } from '@mesh-gradient/react';
+import { Palette } from 'lucide-react';
 
 interface GradientPickerProps {
     value?: GradientConfig;
@@ -33,7 +34,8 @@ export function GradientPicker({ value, onChange, colorTheme, onRegenerate }: Gr
                     size="sm"
                     onClick={handleRegenerate}
                 >
-                    🎨 Regenerate
+                    <Palette className="mr-2 h-4 w-4" aria-hidden="true" />
+                    Regenerate
                 </Button>
             </div>
             <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden border">

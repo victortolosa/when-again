@@ -27,6 +27,7 @@ export function ImageUploader({
 }: ImageUploaderProps) {
     const [tempImage, setTempImage] = useState<string | null>(null);
     const [isCropping, setIsCropping] = useState(false);
+    const [tempOriginalFile, setTempOriginalFile] = useState<File | null>(null);
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -58,6 +59,7 @@ export function ImageUploader({
             const reader = new FileReader();
             reader.onload = (event) => {
                 setTempImage(event.target?.result as string);
+                setTempOriginalFile(processedFile);
                 setIsCropping(true);
             };
             reader.readAsDataURL(processedFile);
@@ -71,11 +73,13 @@ export function ImageUploader({
         onCropComplete(croppedFile, originalFile);
         setIsCropping(false);
         setTempImage(null);
+        setTempOriginalFile(null);
     };
 
     const handleCropCancel = () => {
         setIsCropping(false);
         setTempImage(null);
+        setTempOriginalFile(null);
     };
 
     return (
@@ -115,6 +119,7 @@ export function ImageUploader({
                     onCropComplete={handleCropCompleteInternal}
                     onCancel={handleCropCancel}
                     aspect={4 / 3}
+                    originalFile={tempOriginalFile || undefined}
                 />
             )}
         </div>

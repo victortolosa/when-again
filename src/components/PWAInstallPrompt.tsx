@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { Button } from './ui/button';
+import { Download } from 'lucide-react';
 
 export function PWAInstallPrompt() {
   const { isInstallable, isInstalled, promptInstall } = usePWAInstall();
@@ -35,7 +36,9 @@ export function PWAInstallPrompt() {
     <div className="fixed bottom-20 md:bottom-4 left-4 right-4 md:left-auto md:right-4 z-40 max-w-sm mx-auto md:mx-0 animate-in slide-in-from-bottom-5">
       <div className="bg-card border shadow-lg rounded-lg p-4 space-y-3">
         <div className="flex items-start gap-3">
-          <div className="text-2xl">📲</div>
+          <div className="mt-0.5">
+            <Download className="h-5 w-5" aria-hidden="true" />
+          </div>
           <div className="flex-1">
             <h3 className="font-semibold text-sm">Install DateKeeper</h3>
             <p className="text-xs text-muted-foreground mt-1">

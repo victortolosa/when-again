@@ -6,6 +6,22 @@ import {
 } from 'firebase/storage';
 import { getFirebaseStorage } from '@/lib/firebase';
 import heic2any from 'heic2any';
+import { logger } from '@/lib/logger';
+
+async function purgeCachedUrls(urls: Array<string | undefined>): Promise<void> {
+    if (typeof window === 'undefined' || !('caches' in window)) return;
+
+    const targets = urls.filter((url): url is string => Boolean(url));
+    if (targets.length === 0) return;
+
+    const cacheNames = await caches.keys();
+    await Promise.all(
+        cacheNames.map(async (cacheName) => {
+            const cache = await caches.open(cacheName);
+            await Promise.all(targets.map((url) => cache.delete(url)));
+        })
+    );
+}
 
 /**
  * Upload an image to Firebase Storage
@@ -29,7 +45,7 @@ export async function uploadEntryImage(
     const croppedRef = ref(storage, `entries/${userId}/${baseFilename}_cropped.jpg`);
     const croppedSnapshot = await uploadBytes(croppedRef, croppedFile, {
         contentType: 'image/jpeg',
-        cacheControl: 'public,max-age=31536000',
+        cacheControl: 'public,max-age=86400',
     });
 
     // Upload original image
@@ -37,7 +53,7 @@ export async function uploadEntryImage(
     const originalRef = ref(storage, `entries/${userId}/${baseFilename}_original.${originalExtension}`);
     const originalSnapshot = await uploadBytes(originalRef, originalFile, {
         contentType: originalFile.type,
-        cacheControl: 'public,max-age=31536000',
+        cacheControl: 'public,max-age=86400',
     });
 
     const [imageUrl, originalImageUrl] = await Promise.all([
@@ -92,6 +108,7 @@ export async function deleteEntryImage(imageUrl: string, originalImageUrl?: stri
             deletePromises.push(deleteObject(ref(storage, originalImageUrl)));
         }
         await Promise.all(deletePromises);
+        await purgeCachedUrls([imageUrl, originalImageUrl]);
     } catch (error) {
         console.warn('Failed to delete image:', error);
     }
@@ -175,7 +192,7 @@ export async function uploadMilestoneImage(
     const croppedRef = ref(storage, `milestones/${userId}/${baseFilename}_cropped.jpg`);
     const croppedSnapshot = await uploadBytes(croppedRef, croppedFile, {
         contentType: 'image/jpeg',
-        cacheControl: 'public,max-age=31536000',
+        cacheControl: 'public,max-age=86400',
     });
 
     // Upload original image
@@ -183,7 +200,7 @@ export async function uploadMilestoneImage(
     const originalRef = ref(storage, `milestones/${userId}/${baseFilename}_original.${originalExtension}`);
     const originalSnapshot = await uploadBytes(originalRef, originalFile, {
         contentType: originalFile.type,
-        cacheControl: 'public,max-age=31536000',
+        cacheControl: 'public,max-age=86400',
     });
 
     const [imageUrl, originalImageUrl] = await Promise.all([
@@ -223,9 +240,9 @@ export async function deleteMilestoneImage(originalImageUrl?: string, croppedIma
 
     try {
         await Promise.all(deletePromises);
-        console.log('Successfully deleted milestone image assets');
+        await purgeCachedUrls([originalImageUrl, croppedImageUrl]);
     } catch (error) {
-        console.warn('Failed to delete some milestone image assets:', error);
+        logger.warn('Failed to delete some milestone image assets', error);
     }
 }
 

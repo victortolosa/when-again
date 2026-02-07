@@ -9,6 +9,7 @@ import {
 import { TrackerFormData } from '@/lib/types';
 import { ensureTrackerHasGradient } from '@/lib/utils/gradient-migration';
 import { useSettings } from '@/components/layout/AppShell';
+import { logger } from '@/lib/logger';
 
 export function useTrackers() {
     const { user } = useAuth();
@@ -17,9 +18,8 @@ export function useTrackers() {
     return useQuery({
         queryKey: ['trackers', user?.uid, sortSettings],
         queryFn: async () => {
-            console.log('Fetching trackers for user:', user?.uid);
             const trackers = await getTrackers(user!.uid);
-            console.log('Fetched trackers:', trackers.length, trackers);
+            logger.debug('Fetched trackers', { count: trackers.length });
 
             // Ensure all trackers have gradients (migration for existing items)
             const trackersWithGradients = trackers.map(tracker => ensureTrackerHasGradient(tracker));
@@ -50,7 +50,7 @@ export function useTrackers() {
                     itemsToUpdate.map(tracker =>
                         updateTracker(tracker.id, { gradient_config: tracker.gradient_config })
                     )
-                ).catch(err => console.error('Failed to migrate gradients:', err));
+                ).catch(err => logger.error('Failed to migrate tracker gradients', err));
             }
 
             // Client-side sorting
@@ -84,24 +84,20 @@ export function useCreateTracker() {
 
     return useMutation({
         mutationFn: async (data: TrackerFormData) => {
-            console.log('Creating tracker with user:', user?.uid);
-            console.log('Tracker data:', data);
             if (!user) {
                 throw new Error('User not authenticated');
             }
             const result = await createTracker(user.uid, data);
-            console.log('Tracker created with ID:', result);
             return result;
         },
         onSuccess: () => {
-            console.log('Invalidating trackers query cache');
             queryClient.invalidateQueries({
                 queryKey: ['trackers'],
                 refetchType: 'active',
             });
         },
         onError: (error) => {
-            console.error('Mutation error:', error);
+            logger.error('Tracker mutation error', error);
         },
     });
 }

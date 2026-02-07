@@ -36,9 +36,9 @@ export default function manifest(): MetadataRoute.Manifest {
         description: 'View your countdowns',
       },
       {
-        name: 'Recurring',
-        url: '/recurring',
-        description: 'View recurring events',
+        name: 'Remember',
+        url: '/reminders',
+        description: 'View your memories and reminders',
       },
     ],
     categories: ['productivity', 'lifestyle'],

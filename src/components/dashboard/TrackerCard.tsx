@@ -1,8 +1,9 @@
 'use client';
 
+import { KeyboardEvent, useState } from 'react';
 import { Tracker } from '@/lib/types';
-import { differenceInDays, format } from 'date-fns';
-import { getAutoTimeParts } from '@/lib/utils/date';
+import { differenceInDays } from 'date-fns';
+import { formatDisplayDate, getAutoTimeParts } from '@/lib/utils/date';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useSettings } from '@/components/layout/AppShell';
@@ -18,6 +19,7 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
     const { } = useSettings();
     const targetDate = tracker.target_date.toDate();
     const today = new Date();
+    const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
     // Use selected display units or default to days
     const displayUnits = tracker.display_units || ['auto'];
@@ -82,11 +84,25 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
     // For AUTO display with exactly two parts, we use special "and" formatting
     const multilineParts = (isAuto && sortedParts.length === 2) ? sortedParts : null;
 
-    const formattedDate = format(targetDate, 'MM/dd/yyyy');
+    const formattedDate = formatDisplayDate(targetDate);
+
+    const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+        if (!onClick) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onClick();
+        }
+    };
+
+    const imageSrc = tracker.cropped_image_url || tracker.image_url || null;
 
     return (
         <Card
             onClick={onClick}
+            onKeyDown={handleKeyDown}
+            role={onClick ? 'button' : undefined}
+            tabIndex={onClick ? 0 : undefined}
+            aria-label={onClick ? `Open tracker ${tracker.title}` : undefined}
             className={cn(
                 "group relative overflow-hidden transition-all hover:shadow-lg",
                 (tracker.cropped_image_url || tracker.image_url) ? "aspect-[4/3] bg-transparent" : "aspect-[2/1]",
@@ -100,12 +116,13 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
             />
 
             {/* Full Background Image */}
-            {(tracker.cropped_image_url || tracker.image_url) && (
+            {imageSrc && failedSrc !== imageSrc && (
                 <div className="absolute inset-0 z-0">
                     <CachedImage
-                        src={tracker.cropped_image_url || tracker.image_url!}
+                        src={imageSrc}
                         alt={tracker.title}
                         className="w-full h-full object-cover"
+                        onError={() => setFailedSrc(imageSrc)}
                     />
                     {/* Dark overlay for text contrast */}
                     <div className="absolute inset-0 bg-black/60" />

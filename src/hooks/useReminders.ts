@@ -8,6 +8,7 @@ import {
 } from '@/lib/db/reminders';
 import { ReminderFormData } from '@/lib/types';
 import { ensureReminderHasGradient } from '@/lib/utils/gradient-migration';
+import { logger } from '@/lib/logger';
 
 export function useReminders() {
     const { user } = useAuth();
@@ -15,9 +16,8 @@ export function useReminders() {
     return useQuery({
         queryKey: ['reminders', user?.uid],
         queryFn: async () => {
-            console.log('Fetching reminders for user:', user?.uid);
             const reminders = await getReminders(user!.uid);
-            console.log('Fetched reminders:', reminders.length, reminders);
+            logger.debug('Fetched reminders', { count: reminders.length });
 
             // Ensure all reminders have gradients (migration for existing items)
             const remindersWithGradients = reminders.map(reminder => ensureReminderHasGradient(reminder));
@@ -48,7 +48,7 @@ export function useReminders() {
                     itemsToUpdate.map(reminder =>
                         updateReminder(reminder.id, { gradient_config: reminder.gradient_config })
                     )
-                ).catch(err => console.error('Failed to migrate gradients:', err));
+                ).catch(err => logger.error('Failed to migrate reminder gradients', err));
             }
 
             // Sort by date (ascending - soonest first)
@@ -68,24 +68,20 @@ export function useCreateReminder() {
 
     return useMutation({
         mutationFn: async (data: ReminderFormData) => {
-            console.log('Creating reminder with user:', user?.uid);
-            console.log('Reminder data:', data);
             if (!user) {
                 throw new Error('User not authenticated');
             }
             const result = await createReminder(user.uid, data);
-            console.log('Reminder created with ID:', result);
             return result;
         },
         onSuccess: () => {
-            console.log('Invalidating reminders query cache');
             queryClient.invalidateQueries({
                 queryKey: ['reminders'],
                 refetchType: 'active',
             });
         },
         onError: (error) => {
-            console.error('Mutation error:', error);
+            logger.error('Reminder mutation error', error);
         },
     });
 }

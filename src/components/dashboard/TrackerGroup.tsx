@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Tracker } from '@/lib/types';
 import { TrackerCard } from './TrackerCard';
+import { ChevronRight } from 'lucide-react';
 
 interface TrackerGroupProps {
     category: string;
@@ -29,9 +30,10 @@ export function TrackerGroup({
                 aria-expanded={!collapsed}
                 aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${category} category`}
             >
-                <span className={`transform transition-transform ${collapsed ? '' : 'rotate-90'}`}>
-                    ▶
-                </span>
+                <ChevronRight
+                    className={`h-4 w-4 transform transition-transform ${collapsed ? '' : 'rotate-90'}`}
+                    aria-hidden="true"
+                />
                 <span className="uppercase tracking-wider">{category || 'Uncategorized'}</span>
                 <span className="text-xs bg-muted px-2 py-0.5 rounded-full">
                     {trackers.length}

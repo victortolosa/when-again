@@ -10,6 +10,7 @@ import { uploadMilestoneImage, deleteMilestoneImage } from '@/lib/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/components/layout/AppShell';
 import { ViewSettings } from '@/components/dashboard/ViewSettings';
+import { logger } from '@/lib/logger';
 
 export default function RemindersPage() {
     const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
@@ -50,9 +51,8 @@ export default function RemindersPage() {
                 }
             }
 
-            console.log('Reminder created successfully');
         } catch (error) {
-            console.error('Error creating reminder:', error);
+            logger.error('Error creating reminder', error);
             alert(`Failed to create reminder: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
@@ -67,17 +67,15 @@ export default function RemindersPage() {
             let originalImageUrl = data.image_url;
             const oldCroppedImageUrl = editingReminder.cropped_image_url;
             const oldOriginalImageUrl = editingReminder.image_url;
+            const shouldDeleteOldImage = !data.cropped_image_url && !data.image_url && (oldOriginalImageUrl || oldCroppedImageUrl);
+            let uploadedNewImage = false;
 
             if (croppedFile && originalFile && user) {
                 const result = await uploadMilestoneImage(croppedFile, originalFile, user.uid, editingReminder.id);
                 croppedImageUrl = result.imageUrl;
                 originalImageUrl = result.originalImageUrl;
-
-                if (oldOriginalImageUrl || oldCroppedImageUrl) {
-                    await deleteMilestoneImage(oldOriginalImageUrl, oldCroppedImageUrl);
-                }
-            } else if (!data.cropped_image_url && (oldOriginalImageUrl || oldCroppedImageUrl)) {
-                await deleteMilestoneImage(oldOriginalImageUrl, oldCroppedImageUrl);
+                uploadedNewImage = true;
+            } else if (shouldDeleteOldImage) {
                 croppedImageUrl = undefined;
                 originalImageUrl = undefined;
             }
@@ -92,17 +90,20 @@ export default function RemindersPage() {
                         }
                     );
                 });
+
+                if ((uploadedNewImage || shouldDeleteOldImage) && (oldOriginalImageUrl || oldCroppedImageUrl)) {
+                    await deleteMilestoneImage(oldOriginalImageUrl, oldCroppedImageUrl);
+                }
             } catch (dbError) {
-                if (croppedFile && originalFile && user && croppedImageUrl) {
+                if (uploadedNewImage) {
                     await deleteMilestoneImage(originalImageUrl, croppedImageUrl);
                 }
                 throw dbError;
             }
 
-            console.log('Reminder updated successfully');
             setEditingReminder(null);
         } catch (error) {
-            console.error('Error updating reminder:', error);
+            logger.error('Error updating reminder', error);
             alert(`Failed to update reminder: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
@@ -122,7 +123,7 @@ export default function RemindersPage() {
                     );
                 });
             } catch (error) {
-                console.error('Error deleting reminder:', error);
+                logger.error('Error deleting reminder', error);
                 alert(`Failed to delete reminder: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         }
@@ -156,6 +157,7 @@ export default function RemindersPage() {
                                 date: editingReminder.date.toDate(),
                                 category: editingReminder.category || '',
                                 color_theme: editingReminder.color_theme,
+                                gradient_config: editingReminder.gradient_config,
                                 image_url: editingReminder.image_url,
                                 cropped_image_url: editingReminder.cropped_image_url,
                                 description: editingReminder.description || '',

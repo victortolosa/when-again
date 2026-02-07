@@ -12,6 +12,7 @@ import { uploadMilestoneImage, deleteMilestoneImage } from '@/lib/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/components/layout/AppShell';
 import { ViewSettings } from '@/components/dashboard/ViewSettings';
+import { logger } from '@/lib/logger';
 
 export default function MilestonesPage() {
     const router = useRouter();
@@ -54,8 +55,13 @@ export default function MilestonesPage() {
 
             // If file provided: upload → update tracker with image_url
             if (croppedFile && originalFile && user) {
-                const { imageUrl, originalImageUrl } = await uploadMilestoneImage(croppedFile, originalFile, user.uid, trackerId);
+                let imageUrl: string | undefined;
+                let originalImageUrl: string | undefined;
                 try {
+                    const uploadResult = await uploadMilestoneImage(croppedFile, originalFile, user.uid, trackerId);
+                    imageUrl = uploadResult.imageUrl;
+                    originalImageUrl = uploadResult.originalImageUrl;
+
                     await new Promise<void>((resolve, reject) => {
                         updateTracker.mutate(
                             { id: trackerId, data: { image_url: originalImageUrl, cropped_image_url: imageUrl } },
@@ -67,14 +73,14 @@ export default function MilestonesPage() {
                     });
                 } catch (dbError) {
                     // Cleanup orphan images if DB update failed
-                    await deleteMilestoneImage(originalImageUrl, imageUrl);
+                    if (originalImageUrl && imageUrl) {
+                        await deleteMilestoneImage(originalImageUrl, imageUrl);
+                    }
                     throw dbError;
                 }
             }
-
-            console.log('Milestone created successfully');
         } catch (error) {
-            console.error('Error creating milestone:', error);
+            logger.error('Error creating milestone', error);
             alert(`Failed to create milestone: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };

@@ -12,6 +12,7 @@ import { uploadMilestoneImage, deleteMilestoneImage } from '@/lib/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/components/layout/AppShell';
 import { ViewSettings } from '@/components/dashboard/ViewSettings';
+import { logger } from '@/lib/logger';
 
 export default function CountdownsPage() {
     const router = useRouter();
@@ -72,7 +73,7 @@ export default function CountdownsPage() {
                 }
             }
         } catch (error) {
-            console.error('Error creating countdown:', error);
+            logger.error('Error creating countdown', error);
             alert(`Failed to create countdown: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };

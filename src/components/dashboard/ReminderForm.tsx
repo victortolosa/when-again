@@ -26,6 +26,7 @@ import {
     TabsContent,
 } from '@/components/ui/tabs';
 import ImageCropper from '@/components/ui/ImageCropper';
+import { Palette } from 'lucide-react';
 
 interface ReminderFormProps {
     onSubmit: (data: ReminderFormData, croppedFile?: File, originalFile?: File) => void;
@@ -72,6 +73,7 @@ export function ReminderForm({
         category: initialData?.category || '',
         color_theme: initialData?.color_theme || COLOR_THEMES[9], // Default to blue
         image_url: initialData?.image_url || undefined,
+        cropped_image_url: initialData?.cropped_image_url || undefined,
         gradient_config: initialData?.gradient_config,
     });
 
@@ -90,6 +92,7 @@ export function ReminderForm({
 
     const [tempImage, setTempImage] = useState<string | null>(null);
     const [isCropping, setIsCropping] = useState(false);
+    const [tempOriginalFile, setTempOriginalFile] = useState<File | null>(null);
 
     // Update image preview when initialData changes (for edit mode)
     useEffect(() => {
@@ -133,6 +136,7 @@ export function ReminderForm({
             const reader = new FileReader();
             reader.onload = (event) => {
                 setTempImage(event.target?.result as string);
+                setTempOriginalFile(processedFile);
                 setIsCropping(true);
             };
             reader.readAsDataURL(processedFile);
@@ -152,11 +156,13 @@ export function ReminderForm({
         reader.readAsDataURL(croppedFile);
         setIsCropping(false);
         setTempImage(null);
+        setTempOriginalFile(null);
     };
 
     const handleCropCancel = () => {
         setIsCropping(false);
         setTempImage(null);
+        setTempOriginalFile(null);
     };
 
     const handleRemoveImage = () => {
@@ -203,9 +209,11 @@ export function ReminderForm({
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {trigger || <Button>+ New Memory</Button>}
-            </DialogTrigger>
+            {!isControlled && (
+                <DialogTrigger asChild>
+                    {trigger || <Button>+ New Memory</Button>}
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
@@ -383,7 +391,8 @@ export function ReminderForm({
                                             size="sm"
                                             onClick={handleRegenerateGradient}
                                         >
-                                            🎨 Regenerate
+                                            <Palette className="mr-2 h-4 w-4" aria-hidden="true" />
+                                            Regenerate
                                         </Button>
                                     </div>
                                     <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden border">
@@ -462,6 +471,7 @@ export function ReminderForm({
                     onCropComplete={handleCropComplete}
                     onCancel={handleCropCancel}
                     aspect={4 / 3}
+                    originalFile={tempOriginalFile || undefined}
                 />
             )}
         </Dialog>

@@ -1,4 +1,4 @@
-import { intervalToDuration, differenceInDays, isBefore } from 'date-fns';
+import { intervalToDuration, differenceInDays, isBefore, format } from 'date-fns';
 
 export interface TimePart {
     value: string;
@@ -117,4 +117,8 @@ export function getFullTimeParts(today: Date, targetDate: Date): TimePart[] {
     }
 
     return parts;
+}
+
+export function formatDisplayDate(date: Date): string {
+    return format(date, 'MMM d, yyyy');
 }

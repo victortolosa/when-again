@@ -17,12 +17,14 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .idea
+.codex/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.tsbuildinfo
 
 # Environment variables
 .env
@@ -35,9 +37,15 @@ dist-ssr
 .next/
 out/
 
+# Generated PWA artifacts
+public/sw.js
+public/workbox-*.js
+public/fallback-*.js
+
 # Firebase
 .firebase/
 .firebaserc
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+*-firebase-adminsdk-*.json

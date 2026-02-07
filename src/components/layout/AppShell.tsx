@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import type { LucideIcon } from 'lucide-react';
+import { Bell, Calendar, Timer } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { SortSettings } from '@/lib/types';
@@ -27,10 +29,10 @@ export function useSettings() {
     return context;
 }
 
-const navItems = [
-    { href: '/milestones', label: 'Milestones', icon: '📅' },
-    { href: '/countdowns', label: 'Countdowns', icon: '⏳' },
-    { href: '/reminders', label: 'Remember', icon: '🧠' },
+const navItems: { href: string; label: string; icon: LucideIcon }[] = [
+    { href: '/milestones', label: 'Milestones', icon: Calendar },
+    { href: '/countdowns', label: 'Countdowns', icon: Timer },
+    { href: '/reminders', label: 'Remember', icon: Bell },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -134,8 +136,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                                     ? 'bg-primary/10 text-primary'
                                     : 'hover:bg-muted text-muted-foreground hover:text-foreground'
                             )}
+                            aria-current={pathname === item.href ? 'page' : undefined}
                         >
-                            <span className="text-xl">{item.icon}</span>
+                            <item.icon className="h-5 w-5" aria-hidden="true" />
                             <span className="font-medium">{item.label}</span>
                         </Link>
                     ))}
@@ -180,25 +183,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                     </SettingsContext.Provider>
                 </main>
 
-                {/* iOS 18 Liquid Glass SVG Filters */}
-                <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
-                    <filter id="glass-refraction">
-                        <feTurbulence type="fractalNoise" baseFrequency="0.01 0.1" numOctaves="2" result="noise" />
-                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G" />
-                    </filter>
-                </svg>
-
-                {/* Mobile Bottom Nav - Custom Liquid Glass Effect */}
+                {/* Mobile Bottom Nav */}
                 <nav
-                    className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[58%] max-w-[234px] flex justify-center items-center px-5 py-3 rounded-full border-[0.5px] border-white/30 backdrop-blur-[2px] bg-black/5 shadow-[inset_0_1px_2px_rgba(255,255,255,0.4),_0_20px_40px_rgba(0,0,0,0.6)] z-50 ring-[0.5px] ring-white/10 gap-10"
-                    style={{ filter: 'url(#glass-refraction)' }}
+                    className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-auto flex justify-center items-center px-5 py-3 rounded-full border border-transparent backdrop-blur-sm z-50 gap-10"
+                    style={{
+                        background:
+                            'linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)) padding-box, linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(0,0,0,0.65)) border-box',
+                    }}
                 >
-                    {/* Specular highlight for the top edge */}
-                    <div className="absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-80" />
-
-                    {/* Subtle interior gloss */}
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/10 via-transparent to-white/5 pointer-events-none" />
-
                     {navItems.map((item) => (
                         <Link
                             key={item.href}
@@ -209,8 +201,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                                     ? 'text-violet-300 scale-110'
                                     : 'text-white/50 hover:text-white/80 active:scale-95'
                             )}
+                            aria-label={item.label}
+                            aria-current={pathname === item.href ? 'page' : undefined}
                         >
-                            <span className="text-2xl filter drop-shadow-md">{item.icon}</span>
+                            <item.icon className="h-6 w-6" aria-hidden="true" />
+                            <span className="sr-only">{item.label}</span>
                             {pathname === item.href && (
                                 <span className="absolute -bottom-2 w-1 h-1 rounded-full bg-violet-400" />
                             )}

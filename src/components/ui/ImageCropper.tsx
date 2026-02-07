@@ -15,6 +15,7 @@ import getCroppedImg from '@/lib/utils/cropUtils';
 interface ImageCropperProps {
     image: string;
     aspect?: number;
+    originalFile?: File;
     onCropComplete: (croppedFile: File, originalFile: File) => void;
     onCancel: () => void;
     open: boolean;
@@ -23,6 +24,7 @@ interface ImageCropperProps {
 const ImageCropper: React.FC<ImageCropperProps> = ({
     image,
     aspect = 4 / 3,
+    originalFile,
     onCropComplete,
     onCancel,
     open,
@@ -70,15 +72,18 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
                     type: 'image/jpeg',
                 });
 
-                // Create original file from the input data URL
-                // We assume it's a data URL since it comes from FileReader in the parent
-                const originalResponse = await fetch(image);
-                const originalBlob = await originalResponse.blob();
-                const originalFile = new File([originalBlob], 'original-image.jpg', {
-                    type: originalBlob.type,
-                });
+                let resolvedOriginalFile = originalFile;
+                if (!resolvedOriginalFile) {
+                    // Create original file from the input data URL
+                    // We assume it's a data URL since it comes from FileReader in the parent
+                    const originalResponse = await fetch(image);
+                    const originalBlob = await originalResponse.blob();
+                    resolvedOriginalFile = new File([originalBlob], 'original-image.jpg', {
+                        type: originalBlob.type,
+                    });
+                }
 
-                onCropComplete(croppedFile, originalFile);
+                onCropComplete(croppedFile, resolvedOriginalFile);
             }
         } catch (e) {
             console.error(e);
@@ -103,10 +108,10 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
                     />
                 </div>
                 <DialogFooter className="p-6 gap-2 bg-background border-t">
-                    <Button variant="outline" onClick={onCancel} className="flex-1">
+                    <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
                         Cancel
                     </Button>
-                    <Button onClick={handleSave} className="flex-1">
+                    <Button type="button" onClick={handleSave} className="flex-1">
                         Apply Crop
                     </Button>
                 </DialogFooter>

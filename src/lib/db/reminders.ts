@@ -14,11 +14,12 @@ import {
 import { getFirebaseDb } from '@/lib/firebase';
 import { Reminder, ReminderFormData } from '@/lib/types';
 import { deleteMilestoneImage } from '@/lib/storage';
+import { logger } from '@/lib/logger';
 
 const COLLECTION_NAME = 'reminders';
+const normalizeOptionalString = (value?: string | null) => (value ? value : null);
 
 export async function getReminders(userId: string): Promise<Reminder[]> {
-    console.log('getReminders: Querying for userId:', userId);
     const db = getFirebaseDb();
 
     try {
@@ -28,19 +29,16 @@ export async function getReminders(userId: string): Promise<Reminder[]> {
             orderBy('created_at', 'desc')
         );
 
-        console.log('getReminders: Executing query...');
         const snapshot = await getDocs(q);
-        console.log('getReminders: Query returned', snapshot.docs.length, 'documents');
 
         const reminders = snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
         })) as Reminder[];
 
-        console.log('getReminders: Mapped reminders:', reminders);
         return reminders;
     } catch (error) {
-        console.error('getReminders: Error fetching reminders:', error);
+        logger.error('Failed to fetch reminders', error);
         throw error;
     }
 }
@@ -49,11 +47,7 @@ export async function createReminder(
     userId: string,
     data: ReminderFormData
 ): Promise<string> {
-    console.log('createReminder called with userId:', userId);
-    console.log('createReminder data:', data);
-
     const db = getFirebaseDb();
-    console.log('Firestore instance:', db);
 
     const reminderData = {
         user_id: userId,
@@ -69,14 +63,11 @@ export async function createReminder(
         updated_at: serverTimestamp(),
     };
 
-    console.log('Writing to Firestore:', reminderData);
-
     try {
         const docRef = await addDoc(collection(db, COLLECTION_NAME), reminderData);
-        console.log('Document created with ID:', docRef.id);
         return docRef.id;
     } catch (error) {
-        console.error('Firestore write error:', error);
+        logger.error('Failed to create reminder', error);
         throw error;
     }
 }
@@ -98,8 +89,12 @@ export async function updateReminder(
     if (data.category !== undefined) updateData.category = data.category;
     if (data.color_theme !== undefined) updateData.color_theme = data.color_theme;
     if (data.gradient_config !== undefined) updateData.gradient_config = data.gradient_config;
-    if (data.image_url !== undefined) updateData.image_url = data.image_url || null;
-    if (data.cropped_image_url !== undefined) updateData.cropped_image_url = data.cropped_image_url || null;
+    if (Object.prototype.hasOwnProperty.call(data, 'image_url')) {
+        updateData.image_url = normalizeOptionalString(data.image_url);
+    }
+    if (Object.prototype.hasOwnProperty.call(data, 'cropped_image_url')) {
+        updateData.cropped_image_url = normalizeOptionalString(data.cropped_image_url);
+    }
 
     await updateDoc(docRef, updateData);
 }
