@@ -1,7 +1,7 @@
 'use client';
 
 import { MeshGradient } from '@mesh-gradient/react';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { GradientConfig } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -108,6 +108,25 @@ export function MeshGradientBackground({ color, gradientConfig, className }: Mes
 
         return [baseDark, compliment, primaryDarker, compDarker];
     }, [color, gradientConfig]);
+
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // ... (rest of useMemo logic remains same)
+
+    if (!mounted) {
+        // Render a solid background as fallback during SSR to match the main color or theme
+        // This prevents the white flash or mismatch
+        return (
+            <div
+                className={cn("absolute inset-0 z-0 bg-background", className)}
+                style={{ backgroundColor: color || '#0f172a' }}
+            />
+        );
+    }
 
     return (
         <div className={cn("absolute inset-0 z-0", className)}>

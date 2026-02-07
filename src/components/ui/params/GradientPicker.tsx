@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { generateRandomGradient } from '@/lib/utils/gradient-generator';
@@ -15,6 +17,12 @@ interface GradientPickerProps {
 }
 
 export function GradientPicker({ value, onChange, colorTheme, onRegenerate }: GradientPickerProps) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const handleRegenerate = () => {
         if (onRegenerate) {
             onRegenerate();
@@ -39,7 +47,7 @@ export function GradientPicker({ value, onChange, colorTheme, onRegenerate }: Gr
                 </Button>
             </div>
             <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden border">
-                {value?.colors ? (
+                {mounted && value?.colors ? (
                     <MeshGradient
                         options={{
                             colors: value.colors,
@@ -51,7 +59,7 @@ export function GradientPicker({ value, onChange, colorTheme, onRegenerate }: Gr
                 ) : (
                     <div
                         className="w-full h-full"
-                        style={{ backgroundColor: colorTheme || '#3b82f6' }}
+                        style={{ backgroundColor: colorTheme || value?.colors?.[0] || '#3b82f6' }}
                     />
                 )}
                 <div className="absolute inset-0 flex items-center justify-center">
