@@ -137,7 +137,14 @@ export default function TrackerDetailsPage() {
     };
 
     const targetDate = tracker.target_date.toDate();
-    const timeParts = getFullTimeParts(new Date(), targetDate);
+    const [now, setNow] = useState<Date | null>(null);
+
+    useEffect(() => {
+        setNow(new Date());
+    }, []);
+
+    // Return empty array if not mounted to prevent hydration incorrect text
+    const timeParts = now ? getFullTimeParts(now, targetDate) : [];
 
     return (
         <div className="fixed inset-0 z-[60] md:static md:z-auto min-h-screen bg-background text-white overflow-hidden">

@@ -28,8 +28,9 @@ export function CachedImage({
     ...props
 }: CachedImageProps) {
     const [resolvedSrc, setResolvedSrc] = useState(src);
-    const isAlreadyCached = useMemo(() => imageCache.has(resolvedSrc), [resolvedSrc]);
-    const [isLoaded, setIsLoaded] = useState(isAlreadyCached);
+    // Initialize to false to avoid hydration mismatch (server doesn't know about client cache)
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [isAlreadyCached, setIsAlreadyCached] = useState(false);
     const [error, setError] = useState(false);
     const [didRetry, setDidRetry] = useState(false);
 
@@ -37,7 +38,11 @@ export function CachedImage({
         setResolvedSrc(src);
         setError(false);
         setDidRetry(false);
-        setIsLoaded(imageCache.has(src));
+
+        // Check cache strictly on client side
+        const cached = imageCache.has(src);
+        setIsAlreadyCached(cached);
+        setIsLoaded(cached);
     }, [src]);
 
     const handleLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Reminder } from '@/lib/types';
 import { formatDisplayDate } from '@/lib/utils/date';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,8 +24,17 @@ interface ReminderCardProps {
 
 export function ReminderCard({ reminder, onEdit, onDelete }: ReminderCardProps) {
     const reminderDate = reminder.date.toDate();
-    const today = new Date();
-    const daysDiff = Math.ceil((reminderDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const [today, setToday] = useState<Date | null>(null);
+
+    useEffect(() => {
+        setToday(new Date());
+    }, []);
+
+    // Return early or show skeletal/loading state if dates aren't ready to prevent hydration mismatch
+    // But since we need to render the card structure, we just default daysDiff to 0 or null and handle it in render
+    const daysDiff = today
+        ? Math.ceil((reminderDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+        : 0;
     const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
     const formattedDate = formatDisplayDate(reminderDate);

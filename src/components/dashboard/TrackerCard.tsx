@@ -1,6 +1,6 @@
 'use client';
 
-import { KeyboardEvent, useState } from 'react';
+import { KeyboardEvent, useState, useEffect } from 'react';
 import { Tracker } from '@/lib/types';
 import { differenceInDays } from 'date-fns';
 import { formatDisplayDate, getAutoTimeParts } from '@/lib/utils/date';
@@ -18,13 +18,18 @@ interface TrackerCardProps {
 export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
     const { } = useSettings();
     const targetDate = tracker.target_date.toDate();
-    const today = new Date();
+    const [today, setToday] = useState<Date | null>(null);
+
+    useEffect(() => {
+        setToday(new Date());
+    }, []);
+
     const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
     // Use selected display units or default to days
     const displayUnits = tracker.display_units || ['auto'];
 
-    const daysDiff = differenceInDays(today, targetDate);
+    const daysDiff = today ? differenceInDays(today, targetDate) : 0;
     const totalDaysAbs = Math.abs(daysDiff);
 
     // Build parts with priority ordering (year > month > day)
@@ -38,7 +43,7 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
 
     const isAuto = displayUnits.includes('auto');
 
-    if (isAuto) {
+    if (isAuto && today) {
         const parts = getAutoTimeParts(today, targetDate);
         partsWithPriority.push(...parts);
     } else {
