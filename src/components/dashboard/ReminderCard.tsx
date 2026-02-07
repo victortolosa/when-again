@@ -35,7 +35,7 @@ export function ReminderCard({ reminder, onEdit, onDelete }: ReminderCardProps) 
     return (
         <Card className={cn(
             "group relative overflow-hidden transition-all hover:shadow-sm flex flex-col",
-            (reminder.cropped_image_url || reminder.image_url) ? "aspect-[4/3]" : "aspect-[2/1]"
+            (reminder.cropped_image_url || reminder.image_url) ? "aspect-[16/8]" : "aspect-[16/6]"
         )}>
             <MeshGradientBackground gradientConfig={reminder.gradient_config} color={reminder.color_theme} />
 
@@ -47,16 +47,22 @@ export function ReminderCard({ reminder, onEdit, onDelete }: ReminderCardProps) 
                         className="w-full h-full object-cover"
                         onError={() => setFailedSrc(imageSrc)}
                     />
-                    <div className="absolute inset-0 bg-black/40" />
+                    <div className="absolute inset-0 bg-white/75 dark:bg-black/40" />
                 </div>
             )}
 
-            <CardContent className="relative z-10 p-4 flex flex-col h-full">
-                <div className="flex items-start justify-between gap-3 mb-2">
+            <CardContent className="relative z-10 p-3 flex flex-col h-full">
+                <div className="flex items-start justify-between gap-2 mb-1">
                     <div className="flex-1 min-w-0">
-                        <h4 className="text-base font-semibold text-white mb-1">{reminder.title}</h4>
+                        <h4 className={cn(
+                            "text-sm font-semibold mb-0.5 line-clamp-1",
+                            "text-black dark:text-white"
+                        )}>{reminder.title}</h4>
                         {reminder.category && (
-                            <div className="text-[11px] text-white/80">{reminder.category}</div>
+                            <div className={cn(
+                                "text-[10px] line-clamp-1",
+                                "text-black/80 dark:text-white/80"
+                            )}>{reminder.category}</div>
                         )}
                     </div>
 
@@ -64,7 +70,17 @@ export function ReminderCard({ reminder, onEdit, onDelete }: ReminderCardProps) 
                         <div className="shrink-0">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-white/80 hover:text-white" aria-label="Open menu">⋮</Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className={cn(
+                                            "h-6 w-6 p-0",
+                                            "text-black/80 hover:text-black dark:text-white/80 dark:hover:text-white"
+                                        )}
+                                        aria-label="Open menu"
+                                    >
+                                        ⋮
+                                    </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-36">
                                     {onEdit && (
@@ -80,15 +96,21 @@ export function ReminderCard({ reminder, onEdit, onDelete }: ReminderCardProps) 
                 </div>
 
                 {reminder.description && (
-                    <p className="text-sm text-white/90 mb-3 line-clamp-3 flex-1">{reminder.description}</p>
+                    <p className={cn(
+                        "text-xs mb-1 line-clamp-1",
+                        "text-black/90 dark:text-white/90"
+                    )}>{reminder.description}</p>
                 )}
 
-                <div className="flex items-center justify-between gap-2 text-xs mt-auto">
-                    <div className="text-white/80 flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
+                <div className="flex items-center justify-between gap-2 text-[11px] mt-auto">
+                    <div className={cn(
+                        "flex items-center gap-1",
+                        "text-black/80 dark:text-white/80"
+                    )}>
+                        <Calendar className="h-3 w-3" aria-hidden="true" />
                         <span>{formattedDate}</span>
                     </div>
-                    <div className={cn('font-medium tabular-nums px-2 py-0.5 rounded-full',
+                    <div className={cn('font-medium tabular-nums px-1.5 py-0 rounded-full',
                         daysDiff < 0 ? 'bg-green-500/20 text-green-300' :
                             daysDiff === 0 ? 'bg-yellow-500/20 text-yellow-300' :
                                 'bg-blue-500/20 text-blue-300'

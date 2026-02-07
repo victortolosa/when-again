@@ -26,7 +26,17 @@ import {
     TabsContent,
 } from '@/components/ui/tabs';
 import ImageCropper from '@/components/ui/ImageCropper';
-import { Palette } from 'lucide-react';
+import { Bell, Palette } from 'lucide-react';
+
+const NOTIFY_BEFORE_OPTIONS = [
+    { label: 'None', value: null },
+    { label: '15 min', value: 15 },
+    { label: '30 min', value: 30 },
+    { label: '1 hr', value: 60 },
+    { label: '2 hrs', value: 120 },
+    { label: '1 day', value: 1440 },
+    { label: '1 week', value: 10080 },
+] as const;
 
 interface ReminderFormProps {
     onSubmit: (data: ReminderFormData, croppedFile?: File, originalFile?: File) => void;
@@ -72,6 +82,7 @@ export function ReminderForm({
         date: getInitialDate(),
         category: initialData?.category || '',
         color_theme: initialData?.color_theme || COLOR_THEMES[9], // Default to blue
+        notify_before: initialData?.notify_before ?? null,
         image_url: initialData?.image_url || undefined,
         cropped_image_url: initialData?.cropped_image_url || undefined,
         gradient_config: initialData?.gradient_config,
@@ -196,6 +207,7 @@ export function ReminderForm({
             title: '',
             description: '',
             date: new Date(today.getFullYear(), today.getMonth(), today.getDate()),
+            notify_before: null,
             category: '',
             color_theme: COLOR_THEMES[9],
             image_url: undefined,
@@ -266,6 +278,28 @@ export function ReminderForm({
                                     }}
                                     required
                                 />
+                            </div>
+
+                            {/* Remind Me Before */}
+                            <div className="space-y-2">
+                                <Label className="flex items-center gap-1.5">
+                                    <Bell className="h-3.5 w-3.5" aria-hidden="true" />
+                                    Remind Me (Optional)
+                                </Label>
+                                <div className="flex flex-wrap gap-2">
+                                    {NOTIFY_BEFORE_OPTIONS.map((opt) => (
+                                        <Button
+                                            key={opt.label}
+                                            type="button"
+                                            variant={formData.notify_before === opt.value ? 'default' : 'outline'}
+                                            size="sm"
+                                            className="min-h-[36px] touch-manipulation"
+                                            onClick={() => setFormData({ ...formData, notify_before: opt.value })}
+                                        >
+                                            {opt.label}
+                                        </Button>
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Image Upload */}

@@ -95,6 +95,15 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
     };
 
     const imageSrc = tracker.cropped_image_url || tracker.image_url || null;
+    const hasImage = Boolean(imageSrc);
+    const isMilestone = tracker.type === 'since';
+    const cardAspectClass = isMilestone
+        ? (hasImage ? 'aspect-[5/3]' : 'aspect-[5/2] sm:aspect-[5/3]')
+        : (hasImage ? 'aspect-[4/3]' : 'aspect-[2/1]');
+    const overlayClass = hasImage ? 'bg-white/75 dark:bg-black/60' : '';
+    const primaryTextClass = 'text-black dark:text-white';
+    const secondaryTextClass = 'text-black/80 dark:text-white/80';
+    const tertiaryTextClass = 'text-black/60 dark:text-white/60';
 
     return (
         <Card
@@ -105,7 +114,8 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
             aria-label={onClick ? `Open tracker ${tracker.title}` : undefined}
             className={cn(
                 "group relative overflow-hidden transition-all hover:shadow-lg",
-                (tracker.cropped_image_url || tracker.image_url) ? "aspect-[4/3] bg-transparent" : "aspect-[2/1]",
+                cardAspectClass,
+                hasImage && "bg-transparent",
                 onClick && "cursor-pointer"
             )}
         >
@@ -124,8 +134,7 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                         className="w-full h-full object-cover"
                         onError={() => setFailedSrc(imageSrc)}
                     />
-                    {/* Dark overlay for text contrast */}
-                    <div className="absolute inset-0 bg-black/60" />
+                    <div className={cn("absolute inset-0", overlayClass)} />
                 </div>
             )}
 
@@ -138,23 +147,18 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                 {/* Top section: Title */}
                 <div className="flex justify-between items-start gap-3">
                     <div className="flex-1 min-w-0">
-                        <h3
-                            className={cn(
-                                "font-semibold text-2xl sm:text-3xl leading-tight text-white line-clamp-2",
-                            )}
-                            style={{
-                                textShadow: '0 2px 4px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.2)'
-                            }}
-                        >
+                        <h3 className={cn(
+                            "font-semibold text-2xl sm:text-3xl leading-tight line-clamp-2",
+                            primaryTextClass,
+                            "text-shadow-none dark:text-shadow-card"
+                        )}>
                             {tracker.title}
                         </h3>
                         {tracker.category && (
                             <span
                                 className={cn(
                                     "inline-block px-2 py-1 text-[10px] sm:text-xs font-medium rounded-full mt-2",
-                                    (tracker.cropped_image_url || tracker.image_url)
-                                        ? "bg-white/20 text-white backdrop-blur-sm border border-white/10"
-                                        : "bg-muted text-muted-foreground"
+                                    "bg-black/10 text-black backdrop-blur-sm border border-black/10 dark:bg-white/20 dark:text-white dark:border-white/10"
                                 )}
                             >
                                 {tracker.category}
@@ -166,40 +170,33 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                 {/* Bottom section: Date (left) and Duration (right) */}
                 <div className="mt-auto flex items-end justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                        <p
-                            className={cn(
-                                "text-[10px] sm:text-xs font-medium uppercase tracking-wider text-white/80",
-                            )}
-                            style={{
-                                textShadow: '0 1px 3px rgba(0,0,0,0.3)'
-                            }}
-                        >
+                        <p className={cn(
+                            "text-[10px] sm:text-xs font-medium uppercase tracking-wider",
+                            secondaryTextClass,
+                            "text-shadow-none dark:text-shadow-sm"
+                        )}>
                             {formattedDate}
                         </p>
                     </div>
-
-
 
                     <div className="flex flex-col items-end shrink-0 gap-1">
                         {/* Single unit or multi-unit display */}
                         {sortedParts.length === 1 ? (
                             <div className="flex flex-col items-end">
-                                <div
-                                    className="font-bold tabular-nums leading-[0.85] text-right text-white text-4xl sm:text-6xl"
-                                    style={{
-                                        textShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                                    }}
-                                >
+                                <div className={cn(
+                                    "font-bold tabular-nums leading-[0.85] text-right text-4xl sm:text-6xl",
+                                    primaryTextClass,
+                                    "text-shadow-none dark:text-shadow-lg"
+                                )}>
                                     {sortedParts[0].value}
                                 </div>
 
                                 <div className="flex items-baseline gap-1 justify-end mt-1">
-                                    <span
-                                        className="font-semibold text-right text-white text-sm sm:text-base"
-                                        style={{
-                                            textShadow: '0 2px 8px rgba(0,0,0,0.3)'
-                                        }}
-                                    >
+                                    <span className={cn(
+                                        "font-semibold text-right text-sm sm:text-base",
+                                        primaryTextClass,
+                                        "text-shadow-none dark:text-shadow-md"
+                                    )}>
                                         {sortedParts[0].label} {tracker.type === 'till' ? 'to go' : 'ago'}
                                     </span>
                                 </div>
@@ -208,46 +205,42 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                             <>
                                 {/* High priority item on top */}
                                 <div className="flex items-baseline gap-1 justify-end">
-                                    <div
-                                        className="font-bold tabular-nums leading-[0.85] text-right text-white text-4xl sm:text-6xl"
-                                        style={{
-                                            textShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                                        }}
-                                    >
+                                    <div className={cn(
+                                        "font-bold tabular-nums leading-[0.85] text-right text-4xl sm:text-6xl",
+                                        primaryTextClass,
+                                        "text-shadow-none dark:text-shadow-lg"
+                                    )}>
                                         {multilineParts[0].value}
                                     </div>
-                                    <span
-                                        className="font-semibold text-right text-white text-sm sm:text-base"
-                                        style={{
-                                            textShadow: '0 2px 8px rgba(0,0,0,0.3)'
-                                        }}
-                                    >
+                                    <span className={cn(
+                                        "font-semibold text-right text-sm sm:text-base",
+                                        primaryTextClass,
+                                        "text-shadow-none dark:text-shadow-md"
+                                    )}>
                                         {multilineParts[0].label}
                                     </span>
                                 </div>
 
                                 {/* Remaining items on same line */}
                                 <div className="flex items-baseline gap-1 justify-end">
-                                    <span className="text-white/60 font-medium text-xs sm:text-sm mr-1">
+                                    <span className={cn("font-medium text-xs sm:text-sm mr-1", tertiaryTextClass)}>
                                         and
                                     </span>
 
                                     {multilineParts.slice(1).map((part, index) => (
                                         <div key={index + 1} className="flex items-baseline gap-1">
-                                            <div
-                                                className="font-bold tabular-nums leading-[0.85] text-right text-white text-lg sm:text-2xl"
-                                                style={{
-                                                    textShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                                                }}
-                                            >
+                                            <div className={cn(
+                                                "font-bold tabular-nums leading-[0.85] text-right text-lg sm:text-2xl",
+                                                primaryTextClass,
+                                                "text-shadow-none dark:text-shadow-lg"
+                                            )}>
                                                 {part.value}
                                             </div>
-                                            <span
-                                                className="font-semibold text-right text-white text-xs sm:text-sm"
-                                                style={{
-                                                    textShadow: '0 2px 8px rgba(0,0,0,0.3)'
-                                                }}
-                                            >
+                                            <span className={cn(
+                                                "font-semibold text-right text-xs sm:text-sm",
+                                                primaryTextClass,
+                                                "text-shadow-none dark:text-shadow-md"
+                                            )}>
                                                 {part.label} {tracker.type === 'till' ? 'to go' : 'ago'}
                                             </span>
                                         </div>
@@ -259,20 +252,18 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                                 {/* Manual logic or > 2 parts logic (existing fallback) */}
                                 {/* High priority item on top */}
                                 <div className="flex items-baseline gap-1 justify-end">
-                                    <div
-                                        className="font-bold tabular-nums leading-[0.85] text-right text-white text-4xl sm:text-6xl"
-                                        style={{
-                                            textShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                                        }}
-                                    >
+                                    <div className={cn(
+                                        "font-bold tabular-nums leading-[0.85] text-right text-4xl sm:text-6xl",
+                                        primaryTextClass,
+                                        "text-shadow-none dark:text-shadow-lg"
+                                    )}>
                                         {sortedParts[0].value}
                                     </div>
-                                    <span
-                                        className="font-semibold text-right text-white text-sm sm:text-base"
-                                        style={{
-                                            textShadow: '0 2px 8px rgba(0,0,0,0.3)'
-                                        }}
-                                    >
+                                    <span className={cn(
+                                        "font-semibold text-right text-sm sm:text-base",
+                                        primaryTextClass,
+                                        "text-shadow-none dark:text-shadow-md"
+                                    )}>
                                         {sortedParts[0].label} {tracker.type === 'till' ? 'to go' : 'ago'}
                                     </span>
                                 </div>
@@ -281,7 +272,7 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                                 <div className="flex items-baseline gap-1 justify-end">
                                     {/* "OR" prefix for 2 items, or "OR" + slash separator for 3 items */}
                                     {sortedParts.length >= 2 && !isAuto && (
-                                        <span className="text-[10px] sm:text-xs text-gray-400 font-medium">
+                                        <span className={cn("text-[10px] sm:text-xs font-medium", tertiaryTextClass)}>
                                             OR
                                         </span>
                                     )}
@@ -290,23 +281,21 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                                         <div key={index + 1} className="flex items-baseline gap-1">
                                             {/* Show "/" separator before last item if there are 3 total */}
                                             {sortedParts.length === 3 && index === 1 && !isAuto && (
-                                                <span className="text-gray-400 font-medium">/</span>
+                                                <span className={cn("font-medium", tertiaryTextClass)}>/</span>
                                             )}
 
-                                            <div
-                                                className="font-bold tabular-nums leading-[0.85] text-right text-white text-lg sm:text-2xl"
-                                                style={{
-                                                    textShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                                                }}
-                                            >
+                                            <div className={cn(
+                                                "font-bold tabular-nums leading-[0.85] text-right text-lg sm:text-2xl",
+                                                primaryTextClass,
+                                                "text-shadow-none dark:text-shadow-lg"
+                                            )}>
                                                 {part.value}
                                             </div>
-                                            <span
-                                                className="font-semibold text-right text-white text-xs sm:text-sm"
-                                                style={{
-                                                    textShadow: '0 2px 8px rgba(0,0,0,0.3)'
-                                                }}
-                                            >
+                                            <span className={cn(
+                                                "font-semibold text-right text-xs sm:text-sm",
+                                                primaryTextClass,
+                                                "text-shadow-none dark:text-shadow-md"
+                                            )}>
                                                 {part.label}
                                             </span>
                                         </div>
@@ -316,7 +305,7 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                         ))}
                     </div>
                 </div>
-            </CardContent >
-        </Card >
+            </CardContent>
+        </Card>
     );
 }

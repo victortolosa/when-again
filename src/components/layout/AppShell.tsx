@@ -1,15 +1,42 @@
 'use client';
 
-import { ReactNode, useState, createContext, useContext, useEffect } from 'react';
+import React, { ReactNode, useState, useContext, useEffect, useRef, createContext } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import type { LucideIcon } from 'lucide-react';
-import { Bell, Calendar, Timer } from 'lucide-react';
+import { Bell, Calendar, Moon, Sun, Timer } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 import { cn } from '@/lib/utils';
 import { SortSettings } from '@/lib/types';
+import { NotificationContext, useNotificationBadge } from '@/contexts/NotificationContext';
+
+export { useNotificationBadge };
+
+function NotificationBridge({ children }: { children: ReactNode }) {
+    const [mounted, setMounted] = useState(false);
+    const BridgeInner = useRef<React.ComponentType<{ children: ReactNode }> | null>(null);
+
+    useEffect(() => {
+        import('./NotificationBridgeInner').then((mod) => {
+            BridgeInner.current = mod.default;
+            setMounted(true);
+        });
+    }, []);
+
+    if (!mounted || !BridgeInner.current) {
+        return (
+            <NotificationContext.Provider value={{ dueCount: 0 }}>
+                {children}
+            </NotificationContext.Provider>
+        );
+    }
+
+    const Inner = BridgeInner.current;
+    return <Inner>{children}</Inner>;
+}
 
 // Context for settings
 interface SettingsContextType {
@@ -38,6 +65,7 @@ const navItems: { href: string; label: string; icon: LucideIcon }[] = [
 export function AppShell({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const { user, signOut, loading } = useAuth();
+    const { theme, setTheme } = useTheme();
     const [showCategories, setShowCategories] = useState(false);
     const [sortSettings, setSortSettingsState] = useState<SortSettings>({
         field: 'date',
@@ -97,16 +125,16 @@ export function AppShell({ children }: { children: ReactNode }) {
 
     if (!user) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-950">
+            <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="text-center space-y-6 p-8">
-                    <h1 className="text-5xl font-bold text-violet-400">
+                    <h1 className="text-5xl font-bold text-primary">
                         DateKeeper
                     </h1>
-                    <p className="text-slate-400 max-w-md">
+                    <p className="text-muted-foreground max-w-md">
                         Track habits, count down to events, and journal your days with beautiful visuals.
                     </p>
                     <Link href="/auth">
-                        <Button size="lg" className="bg-violet-600 hover:bg-violet-500">
+                        <Button size="lg">
                             Get Started
                         </Button>
                     </Link>
@@ -116,13 +144,54 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
 
     return (
+        <SettingsContext.Provider value={{
+            showCategories,
+            setShowCategories: toggleCategories,
+            sortSettings,
+            setSortSettings: updateSortSettings
+        }}>
+            <NotificationBridge>
+                <AuthenticatedLayout user={user} signOut={signOut} theme={theme} setTheme={setTheme} pathname={pathname}>
+                    {children}
+                </AuthenticatedLayout>
+            </NotificationBridge>
+        </SettingsContext.Provider>
+    );
+}
+
+function AuthenticatedLayout({
+    children,
+    user,
+    signOut,
+    theme,
+    setTheme,
+    pathname,
+}: {
+    children: ReactNode;
+    user: { displayName: string | null; email: string | null };
+    signOut: () => void;
+    theme: string | undefined;
+    setTheme: (t: string) => void;
+    pathname: string;
+}) {
+    return (
         <div className="min-h-screen bg-background flex">
             {/* Desktop Sidebar */}
             <aside className="hidden md:flex w-64 flex-col border-r bg-card">
                 <div className="p-6 border-b flex items-center justify-between">
-                    <h1 className="text-2xl font-bold text-violet-500">
+                    <h1 className="text-2xl font-bold text-primary">
                         DateKeeper
                     </h1>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                        aria-label="Toggle theme"
+                    >
+                        <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                        <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                    </Button>
                 </div>
 
                 <nav className="flex-1 p-4 space-y-2">
@@ -146,7 +215,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
                 <div className="p-4 border-t">
                     <div className="flex items-center gap-3 px-2 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-violet-500 flex items-center justify-center text-white text-sm font-medium">
+                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-medium">
                             {user.displayName?.[0] || user.email?.[0] || 'U'}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -173,23 +242,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="flex-1 flex flex-col">
                 {/* Main Content */}
                 <main className="flex-1 overflow-auto pb-24 md:pb-8">
-                    <SettingsContext.Provider value={{
-                        showCategories,
-                        setShowCategories: toggleCategories,
-                        sortSettings,
-                        setSortSettings: updateSortSettings
-                    }}>
-                        {children}
-                    </SettingsContext.Provider>
+                    {children}
                 </main>
 
                 {/* Mobile Bottom Nav */}
                 <nav
-                    className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-auto flex justify-center items-center px-5 py-3 rounded-full border border-transparent backdrop-blur-sm z-50 gap-10"
-                    style={{
-                        background:
-                            'linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)) padding-box, linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(0,0,0,0.65)) border-box',
-                    }}
+                    className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-auto flex justify-center items-center px-5 py-3 rounded-full border border-transparent backdrop-blur-sm z-50 gap-10 nav-glass"
                 >
                     {navItems.map((item) => (
                         <Link
@@ -198,8 +256,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                             className={cn(
                                 'relative flex flex-col items-center gap-1 transition-all duration-300',
                                 pathname === item.href
-                                    ? 'text-violet-300 scale-110'
-                                    : 'text-white/50 hover:text-white/80 active:scale-95'
+                                    ? 'text-primary scale-110'
+                                    : 'text-muted-foreground hover:text-foreground active:scale-95'
                             )}
                             aria-label={item.label}
                             aria-current={pathname === item.href ? 'page' : undefined}
@@ -207,7 +265,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                             <item.icon className="h-6 w-6" aria-hidden="true" />
                             <span className="sr-only">{item.label}</span>
                             {pathname === item.href && (
-                                <span className="absolute -bottom-2 w-1 h-1 rounded-full bg-violet-400" />
+                                <span className="absolute -bottom-2 w-1 h-1 rounded-full bg-primary" />
                             )}
                         </Link>
                     ))}

@@ -41,19 +41,19 @@ export default function TrackerDetailsPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-black">
-                <div className="animate-pulse text-white/50">Loading details...</div>
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="animate-pulse text-muted-foreground">Loading details...</div>
             </div>
         );
     }
 
     if (!tracker) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-black text-white">
+            <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold mb-4">Tracker not found</h1>
                     <Link href="/milestones">
-                        <Button variant="outline" className="text-white border-white/20 hover:bg-white/10">
+                        <Button variant="outline" className="border-border hover:bg-accent">
                             Return to Dashboard
                         </Button>
                     </Link>
@@ -140,7 +140,7 @@ export default function TrackerDetailsPage() {
     const timeParts = getFullTimeParts(new Date(), targetDate);
 
     return (
-        <div className="fixed inset-0 z-[60] md:static md:z-auto min-h-screen bg-black text-white overflow-hidden">
+        <div className="fixed inset-0 z-[60] md:static md:z-auto min-h-screen bg-background text-white overflow-hidden">
             {/* Background */}
             <div className="absolute inset-0 z-0">
                 <MeshGradientBackground
@@ -182,7 +182,7 @@ export default function TrackerDetailsPage() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="text-white hover:bg-red-500/20 hover:text-red-400 rounded-full h-10 w-10"
+                            className="text-white hover:bg-destructive/20 hover:text-destructive rounded-full h-10 w-10"
                             onClick={handleDeleteTracker}
                         >
                             <Trash2 className="h-5 w-5" />
@@ -210,7 +210,7 @@ export default function TrackerDetailsPage() {
                                         <span className="text-6xl sm:text-8xl font-bold tabular-nums tracking-tighter">
                                             {part.value}
                                         </span>
-                                        <span className="text-xl sm:text-3xl font-medium text-white/80">
+                                        <span className="text-xl sm:text-3xl font-medium text-white/80 text-shadow-sm">
                                             {part.label} {index === timeParts.length - 1 && (tracker.type === 'till' ? 'to go' : 'ago')}
                                         </span>
                                     </div>

@@ -57,6 +57,7 @@ export async function createReminder(
         category: data.category,
         color_theme: data.color_theme,
         gradient_config: data.gradient_config || null,
+        notify_before: data.notify_before ?? null,
         image_url: data.image_url || null,
         cropped_image_url: data.cropped_image_url || null,
         created_at: serverTimestamp(),
@@ -86,6 +87,7 @@ export async function updateReminder(
     if (data.title !== undefined) updateData.title = data.title;
     if (data.description !== undefined) updateData.description = data.description || null;
     if (data.date !== undefined) updateData.date = Timestamp.fromDate(data.date);
+    if (data.notify_before !== undefined) updateData.notify_before = data.notify_before ?? null;
     if (data.category !== undefined) updateData.category = data.category;
     if (data.color_theme !== undefined) updateData.color_theme = data.color_theme;
     if (data.gradient_config !== undefined) updateData.gradient_config = data.gradient_config;

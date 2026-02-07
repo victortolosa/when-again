@@ -3,6 +3,7 @@
 import { MeshGradient } from '@mesh-gradient/react';
 import { useMemo } from 'react';
 import { GradientConfig } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 interface MeshGradientBackgroundProps {
     color?: string;
@@ -109,7 +110,7 @@ export function MeshGradientBackground({ color, gradientConfig, className }: Mes
     }, [color, gradientConfig]);
 
     return (
-        <div className={className} style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+        <div className={cn("absolute inset-0 z-0", className)}>
             <MeshGradient
                 options={{
                     colors,
@@ -119,13 +120,9 @@ export function MeshGradientBackground({ color, gradientConfig, className }: Mes
                 className="w-full h-full"
             />
             {/* Grainy texture overlay */}
-            <div
-                className="absolute inset-0 pointer-events-none opacity-40"
-                style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-                    mixBlendMode: 'overlay'
-                }}
-            />
+            <div className="absolute inset-0 pointer-events-none opacity-40 bg-noise mix-blend-overlay" />
+            {/* Strong light-mode lift to brighten gradients while preserving dark mode depth */}
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-white/92 via-white/86 to-white/78 dark:from-transparent dark:via-transparent dark:to-transparent" />
         </div>
     );
 }

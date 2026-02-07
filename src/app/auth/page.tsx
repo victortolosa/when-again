@@ -61,10 +61,10 @@ export default function AuthPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4">
-            <Card className="w-full max-w-md bg-card/80 backdrop-blur border-white/10">
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
+            <Card className="w-full max-w-md bg-card/80 backdrop-blur border-border">
                 <CardHeader className="text-center">
-                    <CardTitle className="text-3xl font-bold text-violet-400">
+                    <CardTitle className="text-3xl font-bold text-primary">
                         DateKeeper
                     </CardTitle>
                     <CardDescription>
@@ -103,7 +103,7 @@ export default function AuthPage() {
 
                     <div className="relative">
                         <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-white/10" />
+                            <span className="w-full border-t border-border" />
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
                             <span className="bg-card px-2 text-muted-foreground">or</span>
@@ -137,7 +137,7 @@ export default function AuthPage() {
                         </div>
 
                         {error && (
-                            <div className="text-sm text-red-500 bg-red-500/10 p-3 rounded-lg">
+                            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
                                 {error}
                             </div>
                         )}
@@ -151,7 +151,7 @@ export default function AuthPage() {
                         <button
                             type="button"
                             onClick={() => setIsSignUp(!isSignUp)}
-                            className="text-violet-400 hover:text-violet-300 transition-colors"
+                            className="text-primary hover:text-primary/80 transition-colors"
                         >
                             {isSignUp
                                 ? 'Already have an account? Sign in'

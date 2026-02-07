@@ -6,7 +6,8 @@
       "Bash(firebase projects:list:*)",
       "Bash(firebase deploy:*)",
       "Bash(firebase use:*)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(git stash:*)"
     ]
   }
 }

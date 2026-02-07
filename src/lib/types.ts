@@ -51,6 +51,7 @@ export interface Reminder {
     title: string;
     description?: string;
     date: Timestamp;
+    notify_before?: number | null;
     category: string;
     color_theme: string;
     gradient_config?: GradientConfig;
@@ -64,6 +65,7 @@ export interface ReminderFormData {
     title: string;
     description?: string;
     date: Date;
+    notify_before?: number | null;
     category: string;
     color_theme: string;
     gradient_config?: GradientConfig;

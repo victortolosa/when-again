@@ -2,12 +2,27 @@
 
 import { useSettings } from '@/components/layout/AppShell';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Moon, Sun, Monitor, BellRing, CheckCircle, XCircle } from 'lucide-react';
+import { isSupported as notificationsSupported, getPermissionStatus, requestPermission } from '@/lib/notifications';
+import { useState, useEffect } from 'react';
 
 export default function SettingsPage() {
     const { showCategories, setShowCategories, sortSettings, setSortSettings } = useSettings();
     const { user, signOut } = useAuth();
+    const { theme, setTheme } = useTheme();
+    const [permStatus, setPermStatus] = useState<NotificationPermission | 'unsupported'>('default');
+
+    useEffect(() => {
+        setPermStatus(getPermissionStatus());
+    }, []);
+
+    const handleEnableNotifications = async () => {
+        const result = await requestPermission();
+        setPermStatus(result);
+    };
 
     return (
         <div className="space-y-6 p-4 sm:p-6 pb-24">
@@ -35,6 +50,76 @@ export default function SettingsPage() {
                         >
                             {showCategories ? 'On' : 'Off'}
                         </Button>
+                    </div>
+                </div>
+            </Card>
+
+            <Card className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Theme</h2>
+                <div className="flex gap-2">
+                    <Button
+                        variant={theme === 'light' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setTheme('light')}
+                        className="flex-1"
+                    >
+                        <Sun className="mr-2 h-4 w-4" />
+                        Light
+                    </Button>
+                    <Button
+                        variant={theme === 'dark' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setTheme('dark')}
+                        className="flex-1"
+                    >
+                        <Moon className="mr-2 h-4 w-4" />
+                        Dark
+                    </Button>
+                    <Button
+                        variant={theme === 'system' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setTheme('system')}
+                        className="flex-1"
+                    >
+                        <Monitor className="mr-2 h-4 w-4" />
+                        System
+                    </Button>
+                </div>
+            </Card>
+
+            <Card className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Notifications</h2>
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="font-medium">Push Notifications</p>
+                            <p className="text-sm text-muted-foreground">
+                                Get notified when reminders and countdowns are due
+                            </p>
+                        </div>
+                        {permStatus === 'unsupported' ? (
+                            <p className="text-sm text-muted-foreground">Not supported</p>
+                        ) : permStatus === 'granted' ? (
+                            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600 dark:text-green-400">
+                                <CheckCircle className="h-4 w-4" />
+                                Enabled
+                            </span>
+                        ) : permStatus === 'denied' ? (
+                            <div className="text-right">
+                                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-destructive">
+                                    <XCircle className="h-4 w-4" />
+                                    Blocked
+                                </span>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    Enable in browser settings
+                                </p>
+                            </div>
+                        ) : (
+                            <Button size="sm" onClick={handleEnableNotifications}>
+                                <BellRing className="mr-2 h-4 w-4" />
+                                Enable
+                            </Button>
+                        )}
                     </div>
                 </div>
             </Card>
@@ -92,7 +177,7 @@ export default function SettingsPage() {
                 <h2 className="text-xl font-semibold mb-4">Account</h2>
                 <div className="space-y-4">
                     <div className="flex items-center gap-4 pb-4 border-b">
-                        <div className="w-12 h-12 rounded-full bg-violet-500 flex items-center justify-center text-white text-lg font-medium">
+                        <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-lg font-medium">
                             {user?.displayName?.[0] || user?.email?.[0] || 'U'}
                         </div>
                         <div className="flex-1">

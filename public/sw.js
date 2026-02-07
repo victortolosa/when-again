@@ -82,23 +82,32 @@ define(['./workbox-d9604fd2'], (function (workbox) { 'use strict';
    * See https://goo.gl/S9QRab
    */
   workbox.precacheAndRoute([{
+    "url": "/_next/static/OSWmgepZZEu-qmBnm0i4d/_buildManifest.js",
+    "revision": "facdd75b6f22d441a0ebe4f21aef2331"
+  }, {
+    "url": "/_next/static/OSWmgepZZEu-qmBnm0i4d/_ssgManifest.js",
+    "revision": "b6652df95db52feb4daf4eca35380933"
+  }, {
     "url": "/_next/static/chunks/100-817f199ea16e4c8e.js",
     "revision": "817f199ea16e4c8e"
+  }, {
+    "url": "/_next/static/chunks/113-e0cb19f02e1054e1.js",
+    "revision": "e0cb19f02e1054e1"
   }, {
     "url": "/_next/static/chunks/114-49fc1983e4f73447.js",
     "revision": "49fc1983e4f73447"
   }, {
-    "url": "/_next/static/chunks/134-c80dd80fca893cb1.js",
-    "revision": "c80dd80fca893cb1"
+    "url": "/_next/static/chunks/134-18e550070cd91d29.js",
+    "revision": "18e550070cd91d29"
+  }, {
+    "url": "/_next/static/chunks/176-0b6e8f09127683e1.js",
+    "revision": "0b6e8f09127683e1"
   }, {
     "url": "/_next/static/chunks/186-47e8dcf0d250550e.js",
     "revision": "47e8dcf0d250550e"
   }, {
-    "url": "/_next/static/chunks/191-0f11a987176e00c7.js",
-    "revision": "0f11a987176e00c7"
-  }, {
-    "url": "/_next/static/chunks/211-31859c68c2716d67.js",
-    "revision": "31859c68c2716d67"
+    "url": "/_next/static/chunks/211-7923e1e62fb3e9b3.js",
+    "revision": "7923e1e62fb3e9b3"
   }, {
     "url": "/_next/static/chunks/224-6ab2b75fe97c263b.js",
     "revision": "6ab2b75fe97c263b"
@@ -109,8 +118,14 @@ define(['./workbox-d9604fd2'], (function (workbox) { 'use strict';
     "url": "/_next/static/chunks/242-5c4e8123b4d5d9c8.js",
     "revision": "5c4e8123b4d5d9c8"
   }, {
+    "url": "/_next/static/chunks/438-0ac5ef219cdb326f.js",
+    "revision": "0ac5ef219cdb326f"
+  }, {
     "url": "/_next/static/chunks/4bd1b696-096d35a2bd1da3af.js",
     "revision": "096d35a2bd1da3af"
+  }, {
+    "url": "/_next/static/chunks/532.859ba037c9542e3a.js",
+    "revision": "859ba037c9542e3a"
   }, {
     "url": "/_next/static/chunks/53c0104b-6801ec8a152917a8.js",
     "revision": "6801ec8a152917a8"
@@ -118,41 +133,38 @@ define(['./workbox-d9604fd2'], (function (workbox) { 'use strict';
     "url": "/_next/static/chunks/5b86099a-9ccbc78208e3d43b.js",
     "revision": "9ccbc78208e3d43b"
   }, {
-    "url": "/_next/static/chunks/683-62ee975bb061d637.js",
-    "revision": "62ee975bb061d637"
-  }, {
-    "url": "/_next/static/chunks/70-2332fb51761ca87f.js",
-    "revision": "2332fb51761ca87f"
+    "url": "/_next/static/chunks/70-57ccef119fa9ac9d.js",
+    "revision": "57ccef119fa9ac9d"
   }, {
     "url": "/_next/static/chunks/928-dce124f686d542d1.js",
     "revision": "dce124f686d542d1"
   }, {
-    "url": "/_next/static/chunks/929-efd256c296506160.js",
-    "revision": "efd256c296506160"
+    "url": "/_next/static/chunks/942-813500cea50c35e7.js",
+    "revision": "813500cea50c35e7"
   }, {
-    "url": "/_next/static/chunks/998-d4fef87ee8085e19.js",
-    "revision": "d4fef87ee8085e19"
+    "url": "/_next/static/chunks/998-4871482b16744902.js",
+    "revision": "4871482b16744902"
   }, {
-    "url": "/_next/static/chunks/app/(dashboard)/countdowns/page-45c2f01d338f63e9.js",
-    "revision": "45c2f01d338f63e9"
+    "url": "/_next/static/chunks/app/(dashboard)/countdowns/page-57b91f7f8e19056d.js",
+    "revision": "57b91f7f8e19056d"
   }, {
-    "url": "/_next/static/chunks/app/(dashboard)/layout-1b32aacfcb8712c6.js",
-    "revision": "1b32aacfcb8712c6"
+    "url": "/_next/static/chunks/app/(dashboard)/layout-49ee2b7e2ebba181.js",
+    "revision": "49ee2b7e2ebba181"
   }, {
-    "url": "/_next/static/chunks/app/(dashboard)/milestones/page-c20233eae70397a6.js",
-    "revision": "c20233eae70397a6"
+    "url": "/_next/static/chunks/app/(dashboard)/milestones/page-36e13c0b584bfa45.js",
+    "revision": "36e13c0b584bfa45"
   }, {
     "url": "/_next/static/chunks/app/(dashboard)/page-e0f7eddf3c3b3864.js",
     "revision": "e0f7eddf3c3b3864"
   }, {
-    "url": "/_next/static/chunks/app/(dashboard)/reminders/page-0dd2a78637fd74d5.js",
-    "revision": "0dd2a78637fd74d5"
+    "url": "/_next/static/chunks/app/(dashboard)/reminders/page-972e6436241f3f5d.js",
+    "revision": "972e6436241f3f5d"
   }, {
-    "url": "/_next/static/chunks/app/(dashboard)/settings/page-19b89e36829e7e78.js",
-    "revision": "19b89e36829e7e78"
+    "url": "/_next/static/chunks/app/(dashboard)/settings/page-fac1cb4ecd8ce8ea.js",
+    "revision": "fac1cb4ecd8ce8ea"
   }, {
-    "url": "/_next/static/chunks/app/(dashboard)/trackers/%5Bid%5D/page-7366166543820358.js",
-    "revision": "7366166543820358"
+    "url": "/_next/static/chunks/app/(dashboard)/trackers/%5Bid%5D/page-c4938ee1b2341c7c.js",
+    "revision": "c4938ee1b2341c7c"
   }, {
     "url": "/_next/static/chunks/app/_global-error/page-9be14022a1e4e6c8.js",
     "revision": "9be14022a1e4e6c8"
@@ -163,11 +175,11 @@ define(['./workbox-d9604fd2'], (function (workbox) { 'use strict';
     "url": "/_next/static/chunks/app/auth/layout-9be14022a1e4e6c8.js",
     "revision": "9be14022a1e4e6c8"
   }, {
-    "url": "/_next/static/chunks/app/auth/page-d2a26f8d3e323b0f.js",
-    "revision": "d2a26f8d3e323b0f"
+    "url": "/_next/static/chunks/app/auth/page-9600003dbce7407d.js",
+    "revision": "9600003dbce7407d"
   }, {
-    "url": "/_next/static/chunks/app/layout-1a3257eb26f18118.js",
-    "revision": "1a3257eb26f18118"
+    "url": "/_next/static/chunks/app/layout-9b120f74e3411271.js",
+    "revision": "9b120f74e3411271"
   }, {
     "url": "/_next/static/chunks/app/manifest.webmanifest/route-9be14022a1e4e6c8.js",
     "revision": "9be14022a1e4e6c8"
@@ -175,8 +187,8 @@ define(['./workbox-d9604fd2'], (function (workbox) { 'use strict';
     "url": "/_next/static/chunks/app/offline/page-c66b670096673d6f.js",
     "revision": "c66b670096673d6f"
   }, {
-    "url": "/_next/static/chunks/app/pwa-debug/page-15cb43e811ada3ae.js",
-    "revision": "15cb43e811ada3ae"
+    "url": "/_next/static/chunks/app/pwa-debug/page-6b5781426cd06ab9.js",
+    "revision": "6b5781426cd06ab9"
   }, {
     "url": "/_next/static/chunks/e99863e0-79b86b9b00bf4482.js",
     "revision": "79b86b9b00bf4482"
@@ -208,17 +220,11 @@ define(['./workbox-d9604fd2'], (function (workbox) { 'use strict';
     "url": "/_next/static/chunks/polyfills-42372ed130431b0a.js",
     "revision": "846118c33b2c0e922d7b3a7676f81f6f"
   }, {
-    "url": "/_next/static/chunks/webpack-5c963b4b6db2e744.js",
-    "revision": "5c963b4b6db2e744"
+    "url": "/_next/static/chunks/webpack-7f2a5186ba1b02e5.js",
+    "revision": "7f2a5186ba1b02e5"
   }, {
-    "url": "/_next/static/css/f1434e382ad52792.css",
-    "revision": "f1434e382ad52792"
-  }, {
-    "url": "/_next/static/lTxhuOgBsz_C-2Dg0Gq-q/_buildManifest.js",
-    "revision": "facdd75b6f22d441a0ebe4f21aef2331"
-  }, {
-    "url": "/_next/static/lTxhuOgBsz_C-2Dg0Gq-q/_ssgManifest.js",
-    "revision": "b6652df95db52feb4daf4eca35380933"
+    "url": "/_next/static/css/c6e3c3c4bf2fea32.css",
+    "revision": "c6e3c3c4bf2fea32"
   }, {
     "url": "/fallback-ce627215c0e4a9af.js",
     "revision": "8d821085767c55683247c66ad6871da9"
@@ -230,22 +236,22 @@ define(['./workbox-d9604fd2'], (function (workbox) { 'use strict';
     "revision": "2aaafa6a49b6563925fe440891e32717"
   }, {
     "url": "/icons/apple-touch-icon.png",
-    "revision": "f3b405535fa5e7b6f73ab5820a67e6f7"
+    "revision": "2fc9eb003db43faeac42b7ebabee7053"
   }, {
     "url": "/icons/icon-192x192.png",
-    "revision": "f3b405535fa5e7b6f73ab5820a67e6f7"
+    "revision": "05fde42861de297f28f73fbb56925d6b"
   }, {
     "url": "/icons/icon-512x512.png",
-    "revision": "f3b405535fa5e7b6f73ab5820a67e6f7"
+    "revision": "a5ce1dd9430ab7711d34cbfbb3f0f5a7"
   }, {
     "url": "/next.svg",
     "revision": "8e061864f388b47f33a1c3780831193e"
   }, {
     "url": "/offline",
-    "revision": "lTxhuOgBsz_C-2Dg0Gq-q"
+    "revision": "OSWmgepZZEu-qmBnm0i4d"
   }, {
     "url": "/sw-custom.js",
-    "revision": "7d21cc31482a18ffddf4c16d7baa867b"
+    "revision": "d37bb155dff40673142f4511e53c27e5"
   }, {
     "url": "/vercel.svg",
     "revision": "c0af2f507b369b085b35ef4bbe3bcf1e"
