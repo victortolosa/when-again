@@ -25,16 +25,6 @@ function NotificationBridge({ children }: { children: ReactNode }) {
             setMounted(true);
         });
 
-        // Temporary: Force unregister service workers to fix Firestore interception issue
-        if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(registrations => {
-                for (const registration of registrations) {
-                    // Unregister if it's the next-pwa worker (or any for now to be safe)
-                    console.log('Unregistering SW to fix config:', registration);
-                    registration.unregister();
-                }
-            });
-        }
     }, []);
 
     if (!mounted || !BridgeInner.current) {
