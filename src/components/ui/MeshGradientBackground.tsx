@@ -1,7 +1,7 @@
 'use client';
 
 import { MeshGradient } from '@mesh-gradient/react';
-import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { GradientConfig } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -9,28 +9,6 @@ interface MeshGradientBackgroundProps {
     color?: string;
     gradientConfig?: GradientConfig;
     className?: string;
-}
-
-// ── WebGL context pool ──
-// iOS Safari limits active WebGL contexts to ~8-16. We render MeshGradient
-// (WebGL canvas) one batch at a time, capture each canvas as a static image,
-// then release the context so the next card can render.
-let _active = 0;
-const _MAX = 4;
-const _queue: (() => void)[] = [];
-
-function acquireSlot(): Promise<void> {
-    if (_active < _MAX) {
-        _active++;
-        return Promise.resolve();
-    }
-    return new Promise(resolve => _queue.push(() => { _active++; resolve(); }));
-}
-
-function releaseSlot() {
-    _active = Math.max(0, _active - 1);
-    const next = _queue.shift();
-    if (next) next();
 }
 
 /**
@@ -116,56 +94,29 @@ export function MeshGradientBackground({ color, gradientConfig, className }: Mes
     }, [color, gradientConfig]);
 
     const [mounted, setMounted] = useState(false);
-    const [snapshotUrl, setSnapshotUrl] = useState<string | null>(null);
-    const [canRender, setCanRender] = useState(false);
-    const wrapperRef = useRef<HTMLDivElement>(null);
-    const slotHeldRef = useRef(false);
+    const [isVisible, setIsVisible] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         setMounted(true);
     }, []);
 
-    // Acquire a WebGL slot, then allow the MeshGradient canvas to mount
+    // Only render WebGL canvas for cards visible in the viewport.
+    // iOS Safari limits active WebGL contexts to ~8-16; this keeps
+    // the count to whatever fits on screen (typically 3-6 cards).
     useEffect(() => {
-        if (!mounted || snapshotUrl) return;
+        const el = containerRef.current;
+        if (!el) return;
 
-        let cancelled = false;
-        acquireSlot().then(() => {
-            if (cancelled) { releaseSlot(); return; }
-            slotHeldRef.current = true;
-            setCanRender(true);
-        });
-
-        return () => {
-            cancelled = true;
-            if (slotHeldRef.current) {
-                releaseSlot();
-                slotHeldRef.current = false;
-            }
-            setCanRender(false);
-        };
-    }, [mounted, snapshotUrl, colorKey]);
-
-    // Once MeshGradient initializes, capture canvas → static image, release slot
-    const handleInit = useCallback(() => {
-        requestAnimationFrame(() => {
-            const canvas = wrapperRef.current?.querySelector('canvas');
-            if (canvas && canvas.width > 0) {
-                try {
-                    setSnapshotUrl(canvas.toDataURL());
-                } catch {
-                    // WebGL context already lost — CSS fallback stays
-                }
-            }
-            if (slotHeldRef.current) {
-                releaseSlot();
-                slotHeldRef.current = false;
-            }
-            setCanRender(false);
-        });
+        const observer = new IntersectionObserver(
+            ([entry]) => setIsVisible(entry.isIntersecting),
+            { rootMargin: '100px' }
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
     }, []);
 
-    // CSS radial-gradient fallback that approximates the mesh look
+    // CSS radial-gradient fallback for SSR / off-screen cards
     const cssFallback = useMemo(() => ({
         background: `
             radial-gradient(ellipse at 25% 40%, ${colors[0]}, transparent 65%),
@@ -174,53 +125,29 @@ export function MeshGradientBackground({ color, gradientConfig, className }: Mes
             ${colors[3]}`
     }), [colors]);
 
-    const overlays = (
-        <>
-            {/* Grainy texture overlay */}
-            <div className="absolute inset-0 pointer-events-none opacity-40 bg-noise mix-blend-overlay" />
-            {/* Strong light-mode lift to brighten gradients while preserving dark mode depth */}
-            <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-white/92 via-white/86 to-white/78 dark:from-transparent dark:via-transparent dark:to-transparent" />
-        </>
-    );
-
     if (!mounted) {
         return (
             <div
-                className={cn("absolute inset-0 z-0", className)}
-                style={cssFallback}
+                className={cn("absolute inset-0 z-0 bg-background", className)}
+                style={{ backgroundColor: color || '#0f172a' }}
             />
         );
     }
 
-    // Captured snapshot — WebGL context already released
-    if (snapshotUrl) {
-        return (
-            <div className={cn("absolute inset-0 z-0", className)}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={snapshotUrl} alt="" className="w-full h-full object-cover" />
-                {overlays}
-            </div>
-        );
-    }
-
-    // WebGL slot acquired — render canvas briefly to capture
-    if (canRender) {
-        return (
-            <div ref={wrapperRef} className={cn("absolute inset-0 z-0", className)}>
+    return (
+        <div ref={containerRef} className={cn("absolute inset-0 z-0", className)}>
+            {isVisible ? (
                 <MeshGradient
                     options={{ colors, isStatic: true, seed }}
                     className="w-full h-full"
-                    onInit={handleInit}
                 />
-                {overlays}
-            </div>
-        );
-    }
-
-    // Waiting for a WebGL slot — show CSS approximation
-    return (
-        <div className={cn("absolute inset-0 z-0", className)} style={cssFallback}>
-            {overlays}
+            ) : (
+                <div className="absolute inset-0" style={cssFallback} />
+            )}
+            {/* Grainy texture overlay */}
+            <div className="absolute inset-0 pointer-events-none opacity-40 bg-noise mix-blend-overlay" />
+            {/* Strong light-mode lift to brighten gradients while preserving dark mode depth */}
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-white/92 via-white/86 to-white/78 dark:from-transparent dark:via-transparent dark:to-transparent" />
         </div>
     );
 }
