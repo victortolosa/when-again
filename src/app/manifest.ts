@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'DateKeeper',
     short_name: 'DateKeeper',
     description: 'Track habits, count down to events, and journal your days with beautiful visuals.',
-    start_url: '/',
+    start_url: '/milestones',
     display: 'standalone',
     background_color: '#000000',
     theme_color: '#000000',

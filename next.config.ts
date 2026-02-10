@@ -47,8 +47,16 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  turbopack: {}, // Silence Turbopack/webpack warning (PWA plugin requires webpack)
+  turbopack: {},
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/milestones',
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default withPWA(nextConfig);

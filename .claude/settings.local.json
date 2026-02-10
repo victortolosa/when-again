@@ -14,7 +14,9 @@
       "Bash(ls:*)",
       "WebSearch",
       "Bash(npm ls:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(git fetch:*)",
+      "Bash(timeout 20 npx next dev:*)"
     ]
   }
 }
