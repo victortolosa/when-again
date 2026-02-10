@@ -11,7 +11,10 @@
       "Bash(npx next build:*)",
       "Bash(git ls-files:*)",
       "Bash(git rm:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebSearch",
+      "Bash(npm ls:*)",
+      "Bash(node -e:*)"
     ]
   }
 }

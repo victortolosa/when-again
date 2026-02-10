@@ -1,7 +1,7 @@
 'use client';
 
 import { MeshGradient } from '@mesh-gradient/react';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { GradientConfig } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -9,6 +9,28 @@ interface MeshGradientBackgroundProps {
     color?: string;
     gradientConfig?: GradientConfig;
     className?: string;
+}
+
+// ── WebGL context pool ──
+// iOS Safari limits active WebGL contexts to ~8-16. We render MeshGradient
+// (WebGL canvas) one batch at a time, capture each canvas as a static image,
+// then release the context so the next card can render.
+let _active = 0;
+const _MAX = 4;
+const _queue: (() => void)[] = [];
+
+function acquireSlot(): Promise<void> {
+    if (_active < _MAX) {
+        _active++;
+        return Promise.resolve();
+    }
+    return new Promise(resolve => _queue.push(() => { _active++; resolve(); }));
+}
+
+function releaseSlot() {
+    _active = Math.max(0, _active - 1);
+    const next = _queue.shift();
+    if (next) next();
 }
 
 /**
@@ -54,7 +76,6 @@ function hslToHex(h: number, s: number, l: number): string {
 }
 
 export function MeshGradientBackground({ color, gradientConfig, className }: MeshGradientBackgroundProps) {
-    // Create a stable key based on actual color values to prevent unnecessary re-renders
     const colorKey = useMemo(() => {
         if (gradientConfig?.colors) {
             return gradientConfig.colors.join(',');
@@ -62,86 +83,144 @@ export function MeshGradientBackground({ color, gradientConfig, className }: Mes
         return color || 'default';
     }, [color, gradientConfig]);
 
-    // Use stored seed if available, otherwise generate from color key
     const seed = useMemo(() => {
-        // If gradient config has a seed, use it
         if (gradientConfig?.seed !== undefined) {
             return gradientConfig.seed;
         }
-
-        // Otherwise, generate a deterministic seed from the color key
         let hash = 0;
         for (let i = 0; i < colorKey.length; i++) {
             const char = colorKey.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
-            hash = hash | 0; // Convert to 32-bit integer
+            hash = hash | 0;
         }
         return Math.abs(hash);
     }, [colorKey, gradientConfig]);
 
     const colors = useMemo((): [string, string, string, string] => {
-        // If gradient config is provided, use it (new behavior)
         if (gradientConfig?.colors) {
             return gradientConfig.colors;
         }
 
-        // Otherwise, generate from single color (legacy behavior)
         if (!color) {
-            // Fallback to default gradient
             return ['#1e293b', '#0f172a', '#020617', '#000000'];
         }
 
         const hsl = hexToHsl(color);
-
-        // Base is darker for readability (max 30% lightness)
         const baseDark = hslToHex(hsl.h, hsl.s, Math.min(hsl.l, 25));
-
-        // Complimentary color (180 degrees shift), saturated but dark
         const compHue = (hsl.h + 180) % 360;
         const compliment = hslToHex(compHue, Math.max(hsl.s, 70), Math.min(hsl.l, 20));
-
-        // Very dark primary
         const primaryDarker = hslToHex(hsl.h, hsl.s, Math.min(hsl.l, 10));
-
-        // Deep dark compliment
         const compDarker = hslToHex(compHue, hsl.s, Math.min(hsl.l, 5));
 
         return [baseDark, compliment, primaryDarker, compDarker];
     }, [color, gradientConfig]);
 
     const [mounted, setMounted] = useState(false);
+    const [snapshotUrl, setSnapshotUrl] = useState<string | null>(null);
+    const [canRender, setCanRender] = useState(false);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    const slotHeldRef = useRef(false);
 
     useEffect(() => {
         setMounted(true);
     }, []);
 
-    // ... (rest of useMemo logic remains same)
+    // Acquire a WebGL slot, then allow the MeshGradient canvas to mount
+    useEffect(() => {
+        if (!mounted || snapshotUrl) return;
 
-    if (!mounted) {
-        // Render a solid background as fallback during SSR to match the main color or theme
-        // This prevents the white flash or mismatch
-        return (
-            <div
-                className={cn("absolute inset-0 z-0 bg-background", className)}
-                style={{ backgroundColor: color || '#0f172a' }}
-            />
-        );
-    }
+        let cancelled = false;
+        acquireSlot().then(() => {
+            if (cancelled) { releaseSlot(); return; }
+            slotHeldRef.current = true;
+            setCanRender(true);
+        });
 
-    return (
-        <div className={cn("absolute inset-0 z-0", className)}>
-            <MeshGradient
-                options={{
-                    colors,
-                    isStatic: true,
-                    seed
-                }}
-                className="w-full h-full"
-            />
+        return () => {
+            cancelled = true;
+            if (slotHeldRef.current) {
+                releaseSlot();
+                slotHeldRef.current = false;
+            }
+            setCanRender(false);
+        };
+    }, [mounted, snapshotUrl, colorKey]);
+
+    // Once MeshGradient initializes, capture canvas → static image, release slot
+    const handleInit = useCallback(() => {
+        requestAnimationFrame(() => {
+            const canvas = wrapperRef.current?.querySelector('canvas');
+            if (canvas && canvas.width > 0) {
+                try {
+                    setSnapshotUrl(canvas.toDataURL());
+                } catch {
+                    // WebGL context already lost — CSS fallback stays
+                }
+            }
+            if (slotHeldRef.current) {
+                releaseSlot();
+                slotHeldRef.current = false;
+            }
+            setCanRender(false);
+        });
+    }, []);
+
+    // CSS radial-gradient fallback that approximates the mesh look
+    const cssFallback = useMemo(() => ({
+        background: `
+            radial-gradient(ellipse at 25% 40%, ${colors[0]}, transparent 65%),
+            radial-gradient(ellipse at 75% 65%, ${colors[1]}, transparent 65%),
+            radial-gradient(ellipse at 55% 20%, ${colors[2]}, transparent 65%),
+            ${colors[3]}`
+    }), [colors]);
+
+    const overlays = (
+        <>
             {/* Grainy texture overlay */}
             <div className="absolute inset-0 pointer-events-none opacity-40 bg-noise mix-blend-overlay" />
             {/* Strong light-mode lift to brighten gradients while preserving dark mode depth */}
             <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-white/92 via-white/86 to-white/78 dark:from-transparent dark:via-transparent dark:to-transparent" />
+        </>
+    );
+
+    if (!mounted) {
+        return (
+            <div
+                className={cn("absolute inset-0 z-0", className)}
+                style={cssFallback}
+            />
+        );
+    }
+
+    // Captured snapshot — WebGL context already released
+    if (snapshotUrl) {
+        return (
+            <div className={cn("absolute inset-0 z-0", className)}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={snapshotUrl} alt="" className="w-full h-full object-cover" />
+                {overlays}
+            </div>
+        );
+    }
+
+    // WebGL slot acquired — render canvas briefly to capture
+    if (canRender) {
+        return (
+            <div ref={wrapperRef} className={cn("absolute inset-0 z-0", className)}>
+                <MeshGradient
+                    options={{ colors, isStatic: true, seed }}
+                    className="w-full h-full"
+                    onInit={handleInit}
+                />
+                {overlays}
+            </div>
+        );
+    }
+
+    // Waiting for a WebGL slot — show CSS approximation
+    return (
+        <div className={cn("absolute inset-0 z-0", className)} style={cssFallback}>
+            {overlays}
         </div>
     );
 }
