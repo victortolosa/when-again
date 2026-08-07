@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Reminder } from '@/lib/types';
-import { formatDisplayDate } from '@/lib/utils/date';
+import { formatDisplayDate, getAutoTimeParts } from '@/lib/utils/date';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,14 +27,28 @@ export function ReminderCard({ reminder, onEdit, onDelete }: ReminderCardProps) 
     const [today, setToday] = useState<Date | null>(null);
 
     useEffect(() => {
-        setToday(new Date());
+        const timeoutId = window.setTimeout(() => setToday(new Date()), 0);
+        return () => window.clearTimeout(timeoutId);
     }, []);
 
-    // Return early or show skeletal/loading state if dates aren't ready to prevent hydration mismatch
-    // But since we need to render the card structure, we just default daysDiff to 0 or null and handle it in render
-    const daysDiff = today
-        ? Math.ceil((reminderDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-        : 0;
+    const timeParts = today ? getAutoTimeParts(today, reminderDate) : [];
+    const todayAtMidnight = today
+        ? new Date(today.getFullYear(), today.getMonth(), today.getDate())
+        : null;
+    const reminderAtMidnight = new Date(
+        reminderDate.getFullYear(),
+        reminderDate.getMonth(),
+        reminderDate.getDate()
+    );
+    const isToday = todayAtMidnight?.getTime() === reminderAtMidnight.getTime();
+    const isPast = todayAtMidnight
+        ? reminderAtMidnight.getTime() < todayAtMidnight.getTime()
+        : false;
+    const relativeTimeLabel = !today
+        ? ''
+        : isToday
+            ? 'today'
+            : `${timeParts.map((part) => `${part.value} ${part.label}`).join(' and ')} ${isPast ? 'ago' : 'to go'}`;
     const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
     const formattedDate = formatDisplayDate(reminderDate);
@@ -111,20 +125,21 @@ export function ReminderCard({ reminder, onEdit, onDelete }: ReminderCardProps) 
                     )}>{reminder.description}</p>
                 )}
 
-                <div className="flex items-center justify-between gap-2 text-[11px] mt-auto">
+                <div className="flex items-end justify-between gap-2 text-[11px] mt-auto">
                     <div className={cn(
-                        "flex items-center gap-1",
+                        "flex min-w-0 items-center gap-1",
                         "text-black/80 dark:text-white/80"
                     )}>
                         <Calendar className="h-3 w-3" aria-hidden="true" />
-                        <span>{formattedDate}</span>
+                        <span className="whitespace-nowrap">{formattedDate}</span>
                     </div>
-                    <div className={cn('font-medium tabular-nums px-1.5 py-0 rounded-full',
-                        daysDiff < 0 ? 'bg-green-500/20 text-green-300' :
-                            daysDiff === 0 ? 'bg-yellow-500/20 text-yellow-300' :
-                                'bg-blue-500/20 text-blue-300'
+                    <div className={cn(
+                        'max-w-[60%] rounded-md px-2 py-0.5 text-right font-medium leading-tight tabular-nums',
+                        isPast ? 'bg-green-500/20 text-green-700 dark:text-green-300' :
+                            isToday ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-300' :
+                                'bg-blue-500/20 text-blue-700 dark:text-blue-300'
                     )}>
-                        {daysDiff > 0 ? `${daysDiff}d` : daysDiff === 0 ? 'today' : `${Math.abs(daysDiff)}d ago`}
+                        {relativeTimeLabel || '\u00a0'}
                     </div>
                 </div>
             </CardContent>
