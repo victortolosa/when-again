@@ -95,7 +95,9 @@ export function useTrackers() {
         };
     }
 
-    return query;
+    // Treat "no data yet" (including waiting on auth) as loading so pages
+    // don't flash their empty state.
+    return { ...query, isLoading: query.isPending };
 }
 
 export function useCreateTracker() {

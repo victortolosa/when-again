@@ -53,7 +53,7 @@ export function OfflineIndicator() {
         : 'bg-orange-500 text-white'
         }`}
     >
-      <div className="container mx-auto px-4 py-2 text-center text-sm font-medium">
+      <div className="container mx-auto px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] text-center text-sm font-medium">
         {isOnline ? (
           <span className="inline-flex items-center gap-2">
             <Wifi className="h-4 w-4" aria-hidden="true" />

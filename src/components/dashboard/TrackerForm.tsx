@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useForm, Controller, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -35,11 +35,11 @@ const trackerSchema = z.object({
     title: z.string().min(1, 'Title is required'),
     target_date: z.date(),
     type: z.enum(['since', 'till']),
-    category: z.string().optional(),
-    color_theme: z.string(),
-    image_url: z.string().optional(),
-    cropped_image_url: z.string().optional(),
-    display_units: z.array(z.enum(['years', 'months', 'days', 'auto'])).optional(),
+    category: z.string().nullish(),
+    color_theme: z.string().min(1).catch(COLOR_THEMES[9]),
+    image_url: z.string().nullish(),
+    cropped_image_url: z.string().nullish(),
+    display_units: z.array(z.enum(['years', 'months', 'days', 'auto'])).nullish(),
     gradient_config: z.any().optional(), // GradientConfig type is complex for zod, using any or custom validation if needed
 });
 
@@ -99,8 +99,8 @@ export function TrackerForm({
             type: initialData?.type || 'since',
             category: initialData?.category || '',
             color_theme: initialData?.color_theme || COLOR_THEMES[9],
-            image_url: initialData?.image_url,
-            cropped_image_url: initialData?.cropped_image_url,
+            image_url: initialData?.image_url ?? undefined,
+            cropped_image_url: initialData?.cropped_image_url ?? undefined,
             display_units: initialData?.display_units || ['auto'],
             gradient_config: initialData?.gradient_config,
         },
@@ -112,21 +112,31 @@ export function TrackerForm({
     const [imageError, setImageError] = useState<string | null>(null);
     const [customCategory, setCustomCategory] = useState('');
     const [hasImageChange, setHasImageChange] = useState(false);
+    const [tab, setTab] = useState('general');
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     // eslint-disable-next-line react-hooks/incompatible-library
     const formValues = watch();
 
-    // Reset form when dialog opens/closes or initialData changes
+    // Reset when the dialog opens (even if a previous submit left the form dirty),
+    // and when initialData changes while the user hasn't edited anything yet.
+    const wasOpenRef = useRef(false);
     useEffect(() => {
-        if (open && !isDirty) {
+        if (!open) {
+            wasOpenRef.current = false;
+            return;
+        }
+        const justOpened = !wasOpenRef.current;
+        wasOpenRef.current = true;
+        if (justOpened || !isDirty) {
             reset({
                 title: initialData?.title || '',
                 target_date: getInitialDate(),
                 type: initialData?.type || 'since',
                 category: initialData?.category || '',
                 color_theme: initialData?.color_theme || COLOR_THEMES[9],
-                image_url: initialData?.image_url,
-                cropped_image_url: initialData?.cropped_image_url,
+                image_url: initialData?.image_url ?? undefined,
+                cropped_image_url: initialData?.cropped_image_url ?? undefined,
                 display_units: initialData?.display_units || ['auto'],
                 gradient_config: initialData?.gradient_config,
             });
@@ -159,6 +169,14 @@ export function TrackerForm({
             setHasImageChange(false);
             setOpen(false);
         }
+    };
+
+    const onInvalid = (fieldErrors: FieldErrors<TrackerFormSchema>) => {
+        const names = Object.keys(fieldErrors);
+        console.error('Tracker form validation failed', fieldErrors);
+        // Send the user to the tab holding the first bad field
+        setTab(names.some((n) => n === 'title' || n === 'target_date' || n === 'type') ? 'general' : 'details');
+        setSubmitError(`Couldn't save: please check ${names.map((n) => n.replace(/_/g, ' ')).join(', ')}.`);
     };
 
     const handleImageSelect = () => {
@@ -204,11 +222,11 @@ export function TrackerForm({
                 <DialogHeader className="px-6 pt-6 pb-3">
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSubmit(onSubmitHandler)} className="flex min-h-0 flex-1 flex-col">
+                <form onSubmit={(e) => { setSubmitError(null); return handleSubmit(onSubmitHandler, onInvalid)(e); }} className="flex min-h-0 flex-1 flex-col">
                     <input type="hidden" {...register('image_url')} />
                     <input type="hidden" {...register('cropped_image_url')} />
-                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-4">
-                    <Tabs defaultValue="general" className="w-full">
+                    <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-6 pb-4">
+                    <Tabs value={tab} onValueChange={setTab} className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="general">General</TabsTrigger>
                             <TabsTrigger value="details">Details</TabsTrigger>
@@ -273,6 +291,7 @@ export function TrackerForm({
                                             type="date"
                                             value={formatDateForInput(field.value)}
                                             onChange={(e) => {
+                                                if (!e.target.value) return; // cleared field: keep the last valid date
                                                 const [year, month, day] = e.target.value.split('-').map(Number);
                                                 const localDate = new Date(year, month - 1, day);
                                                 field.onChange(localDate);
@@ -478,6 +497,10 @@ export function TrackerForm({
                         </TabsContent>
                     </Tabs>
                     </div>
+
+                    {submitError && (
+                        <p role="alert" className="px-6 pb-3 text-sm text-destructive break-words">{submitError}</p>
+                    )}
 
                     <DialogFooter className="flex-col sm:flex-row gap-2 border-t px-6 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                         <DialogClose asChild>

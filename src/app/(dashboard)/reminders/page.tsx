@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/components/layout/AppShell';
 import { ViewSettings } from '@/components/dashboard/ViewSettings';
 import { logger } from '@/lib/logger';
+import { toast } from '@/components/ui/toaster';
 
 export default function RemindersPage() {
     const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
@@ -51,16 +52,18 @@ export default function RemindersPage() {
                 }
             }
 
+            return true;
         } catch (error) {
             logger.error('Error creating reminder', error);
-            alert(`Failed to create reminder: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            toast.error(`Failed to create reminder: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            return false;
         }
     };
 
     const handleEditReminder = (reminder: Reminder) => setEditingReminder(reminder);
 
     const handleUpdateReminder = async (data: ReminderFormData, croppedFile?: File, originalFile?: File) => {
-        if (!editingReminder) return;
+        if (!editingReminder) return false;
 
         try {
             let croppedImageUrl = data.cropped_image_url;
@@ -102,9 +105,11 @@ export default function RemindersPage() {
             }
 
             setEditingReminder(null);
+            return true;
         } catch (error) {
             logger.error('Error updating reminder', error);
-            alert(`Failed to update reminder: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            toast.error(`Failed to update reminder: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            return false;
         }
     };
 
@@ -124,7 +129,7 @@ export default function RemindersPage() {
                 });
             } catch (error) {
                 logger.error('Error deleting reminder', error);
-                alert(`Failed to delete reminder: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                toast.error(`Failed to delete reminder: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         }
     };

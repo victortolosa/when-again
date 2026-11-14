@@ -54,7 +54,7 @@ export async function createReminder(
         title: data.title,
         description: data.description || null,
         date: Timestamp.fromDate(data.date),
-        category: data.category,
+        category: data.category ?? '',
         color_theme: data.color_theme,
         gradient_config: data.gradient_config || null,
         notify_before: data.notify_before ?? null,

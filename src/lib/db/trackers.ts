@@ -54,7 +54,7 @@ export async function createTracker(
         title: data.title,
         target_date: Timestamp.fromDate(data.target_date),
         type: data.type,
-        category: data.category,
+        category: data.category ?? '',
         color_theme: data.color_theme,
         gradient_config: data.gradient_config || null,
         image_url: data.image_url || null,

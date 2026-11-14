@@ -5,6 +5,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PWAUpdatePrompt } from "@/components/PWAUpdatePrompt";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "DateKeeper - Track Time Beautifully",
@@ -56,6 +57,7 @@ export default function RootLayout({
             <PWAUpdatePrompt />
             <PWAInstallPrompt />
             <OfflineIndicator />
+            <Toaster />
           </Providers>
         </ErrorBoundary>
       </body>

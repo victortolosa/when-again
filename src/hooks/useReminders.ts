@@ -13,7 +13,7 @@ import { logger } from '@/lib/logger';
 export function useReminders() {
     const { user } = useAuth();
 
-    return useQuery({
+    const query = useQuery({
         queryKey: ['reminders', user?.uid],
         queryFn: async () => {
             const reminders = await getReminders(user!.uid);
@@ -60,6 +60,10 @@ export function useReminders() {
         },
         enabled: !!user,
     });
+
+    // "No data yet" (including waiting on auth) counts as loading so the page
+    // doesn't flash its empty state.
+    return { ...query, isLoading: query.isPending };
 }
 
 export function useCreateReminder() {

@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/components/layout/AppShell';
 import { ViewSettings } from '@/components/dashboard/ViewSettings';
 import { logger } from '@/lib/logger';
+import { toast } from '@/components/ui/toaster';
 
 export default function MilestonesPage() {
     const router = useRouter();
@@ -79,9 +80,11 @@ export default function MilestonesPage() {
                     throw dbError;
                 }
             }
+            return true;
         } catch (error) {
             logger.error('Error creating milestone', error);
-            alert(`Failed to create milestone: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            toast.error(`Failed to create milestone: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            return false;
         }
     };
 

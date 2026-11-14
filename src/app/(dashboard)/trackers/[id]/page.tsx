@@ -14,6 +14,7 @@ import { uploadMilestoneImage, deleteMilestoneImage } from '@/lib/storage';
 import { CachedImage } from '@/components/ui/CachedImage';
 import Link from 'next/link';
 import { logger } from '@/lib/logger';
+import { toast } from '@/components/ui/toaster';
 
 export default function TrackerDetailsPage() {
     const { id } = useParams();
@@ -116,7 +117,7 @@ export default function TrackerDetailsPage() {
             return true;
         } catch (error) {
             logger.error('Error updating tracker', error);
-            alert(`Failed to update tracker: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            toast.error(`Failed to update tracker: ${error instanceof Error ? error.message : 'Unknown error'}`);
             return false;
         }
     };
@@ -137,7 +138,7 @@ export default function TrackerDetailsPage() {
             router.push(returnPath);
         } catch (error) {
             logger.error('Error deleting tracker', error);
-            alert('Failed to delete tracker');
+            toast.error('Failed to delete tracker');
         }
     };
 
@@ -169,7 +170,7 @@ export default function TrackerDetailsPage() {
             </div>
 
             {/* Content */}
-            <div className="relative z-10 min-h-screen flex flex-col p-4 max-w-5xl mx-auto">
+            <div className="relative z-10 min-h-dvh flex flex-col p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] max-w-5xl mx-auto">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-12">
                     <Link href={returnPath}>
@@ -199,7 +200,7 @@ export default function TrackerDetailsPage() {
                 </div>
 
                 {/* Main Info */}
-                <div className="flex-1 flex flex-col justify-center max-w-2xl">
+                <div className="flex-1 flex flex-col justify-center max-w-2xl min-w-0">
                     <div className="space-y-6">
                         {tracker.category && (
                             <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-white/20 border border-white/10 backdrop-blur-md">
@@ -207,7 +208,7 @@ export default function TrackerDetailsPage() {
                             </span>
                         )}
 
-                        <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold leading-tight tracking-tight text-shadow-lg">
+                        <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold leading-tight tracking-tight text-shadow-lg break-words">
                             {tracker.title}
                         </h1>
 

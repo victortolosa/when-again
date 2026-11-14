@@ -39,7 +39,7 @@ const NOTIFY_BEFORE_OPTIONS = [
 ] as const;
 
 interface ReminderFormProps {
-    onSubmit: (data: ReminderFormData, croppedFile?: File, originalFile?: File) => void;
+    onSubmit: (data: ReminderFormData, croppedFile?: File, originalFile?: File) => Promise<boolean | void> | boolean | void;
     initialData?: Partial<ReminderFormData>;
     trigger?: React.ReactNode;
     title?: string;
@@ -97,7 +97,8 @@ export function ReminderForm({
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [originalFile, setOriginalFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(initialData?.cropped_image_url || initialData?.image_url || null);
-    const [uploadingImage] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const uploadingImage = isSubmitting;
     const [imageError, setImageError] = useState<string | null>(null);
     const [customCategory, setCustomCategory] = useState('');
 
@@ -184,8 +185,9 @@ export function ReminderForm({
         setImageError(null);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSubmitting) return;
 
         // Only generate a new gradient if one doesn't exist and there's no image
         let gradientConfig = formData.gradient_config;
@@ -195,10 +197,22 @@ export function ReminderForm({
             gradientConfig = generateUniqueGradient(colorSeed);
         }
 
-        onSubmit({
-            ...formData,
-            gradient_config: gradientConfig,
-        }, selectedFile || undefined, originalFile || undefined);
+        setIsSubmitting(true);
+        let result: boolean | void;
+        try {
+            result = await onSubmit({
+                ...formData,
+                gradient_config: gradientConfig,
+            }, selectedFile || undefined, originalFile || undefined);
+        } catch (error) {
+            console.error('Reminder save failed', error);
+            result = false;
+        } finally {
+            setIsSubmitting(false);
+        }
+
+        // Keep the dialog (and the user's input) open if the save failed
+        if (result === false) return;
 
         setOpen(false);
         // Reset form with local midnight date
@@ -231,7 +245,7 @@ export function ReminderForm({
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-4">
+                    <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-6 pb-4">
                     <Tabs defaultValue="general" className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="general">General</TabsTrigger>
@@ -272,6 +286,7 @@ export function ReminderForm({
                                     type="date"
                                     value={formatDateForInput(formData.date)}
                                     onChange={(e) => {
+                                        if (!e.target.value) return; // cleared field: keep the last valid date
                                         // Create date at local midnight to avoid timezone issues
                                         const [year, month, day] = e.target.value.split('-').map(Number);
                                         const localDate = new Date(year, month - 1, day);
@@ -494,7 +509,7 @@ export function ReminderForm({
                             disabled={!formData.title || uploadingImage}
                             className="w-full sm:w-auto min-h-[44px] touch-manipulation"
                         >
-                            {uploadingImage ? 'Uploading...' : (initialData ? 'Save Changes' : 'Create Memory')}
+                            {uploadingImage ? 'Saving...' : (initialData ? 'Save Changes' : 'Create Memory')}
                         </Button>
                     </DialogFooter>
                 </form>

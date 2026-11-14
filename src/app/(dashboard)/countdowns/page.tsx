@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/components/layout/AppShell';
 import { ViewSettings } from '@/components/dashboard/ViewSettings';
 import { logger } from '@/lib/logger';
+import { toast } from '@/components/ui/toaster';
 
 export default function CountdownsPage() {
     const router = useRouter();
@@ -72,9 +73,11 @@ export default function CountdownsPage() {
                     throw dbError;
                 }
             }
+            return true;
         } catch (error) {
             logger.error('Error creating countdown', error);
-            alert(`Failed to create countdown: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            toast.error(`Failed to create countdown: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            return false;
         }
     };
 
