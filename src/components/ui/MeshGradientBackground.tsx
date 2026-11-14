@@ -98,6 +98,7 @@ export function MeshGradientBackground({ color, gradientConfig, className }: Mes
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- client-only mount guard to avoid SSR/hydration mismatch
         setMounted(true);
     }, []);
 
@@ -136,13 +137,14 @@ export function MeshGradientBackground({ color, gradientConfig, className }: Mes
 
     return (
         <div ref={containerRef} className={cn("absolute inset-0 z-0", className)}>
-            {isVisible ? (
-                <MeshGradient
-                    options={{ colors, isStatic: true, seed }}
-                    className="w-full h-full"
-                />
-            ) : (
-                <div className="absolute inset-0" style={cssFallback} />
+            <div className="absolute inset-0" style={cssFallback} />
+            {isVisible && (
+                <div className="absolute inset-0 animate-in fade-in duration-700 motion-reduce:animate-none">
+                    <MeshGradient
+                        options={{ colors, isStatic: true, seed }}
+                        className="w-full h-full"
+                    />
+                </div>
             )}
             {/* Grainy texture overlay */}
             <div className="absolute inset-0 pointer-events-none opacity-40 bg-noise mix-blend-overlay" />

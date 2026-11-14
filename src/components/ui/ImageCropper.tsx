@@ -92,7 +92,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-            <DialogContent className="sm:max-w-[600px] h-[80vh] flex flex-col p-0 overflow-hidden">
+            <DialogContent className="sm:max-w-[600px] h-[min(80dvh,720px)] flex flex-col p-0 overflow-hidden">
                 <DialogHeader className="p-6 pb-2">
                     <DialogTitle>Crop Image</DialogTitle>
                 </DialogHeader>
@@ -107,7 +107,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
                         onZoomChange={onZoomChange}
                     />
                 </div>
-                <DialogFooter className="p-6 gap-2 bg-background border-t">
+                <DialogFooter className="gap-2 border-t bg-background px-6 pt-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
                     <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
                         Cancel
                     </Button>

@@ -240,7 +240,7 @@ function AuthenticatedLayout({
             {/* Mobile Layout - No Header */}
             <div className="flex-1 flex flex-col">
                 {/* Main Content */}
-                <main className="flex-1 overflow-auto pb-24 md:pb-8">
+                <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto pt-[env(safe-area-inset-top)] md:pt-0 pb-24 md:pb-8">
                     {children}
                 </main>
 

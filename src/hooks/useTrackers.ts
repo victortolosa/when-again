@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -18,6 +18,7 @@ export function useTrackers() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- client-only mount guard to avoid SSR/hydration mismatch
         setMounted(true);
     }, []);
 
@@ -81,6 +82,7 @@ export function useTrackers() {
             return sortedTrackers;
         },
         enabled: !!user && mounted, // Only fetch when mounted and authenticated
+        placeholderData: keepPreviousData, // keep the list on screen while re-sorting
     });
 
     // Force loading state during SSR/hydration to avoid mismatch

@@ -131,7 +131,7 @@ export function ReminderCard({ reminder, onEdit, onDelete }: ReminderCardProps) 
                         "text-black/80 dark:text-white/80"
                     )}>
                         <Calendar className="h-3 w-3" aria-hidden="true" />
-                        <span className="whitespace-nowrap">{formattedDate}</span>
+                        <span className="truncate">{formattedDate}</span>
                     </div>
                     <div className={cn(
                         'max-w-[60%] rounded-md px-2 py-0.5 text-right font-medium leading-tight tabular-nums',

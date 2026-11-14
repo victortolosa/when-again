@@ -6,7 +6,6 @@ import { differenceInDays } from 'date-fns';
 import { formatDisplayDate, getAutoTimeParts } from '@/lib/utils/date';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { useSettings } from '@/components/layout/AppShell';
 import { MeshGradientBackground } from '@/components/ui/MeshGradientBackground';
 import { CachedImage } from '@/components/ui/CachedImage';
 
@@ -16,7 +15,6 @@ interface TrackerCardProps {
 }
 
 export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
-    // const { } = useSettings(); // Removed unused hook
 
     const targetDate = tracker.target_date.toDate();
     const today = new Date();
@@ -150,7 +148,7 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                 <div className="flex justify-between items-start gap-3">
                     <div className="flex-1 min-w-0">
                         <h3 className={cn(
-                            "font-semibold text-2xl sm:text-3xl leading-tight line-clamp-2",
+                            "font-semibold text-2xl sm:text-3xl leading-tight line-clamp-2 break-words",
                             primaryTextClass,
                             "text-shadow-none dark:text-shadow-card"
                         )}>
@@ -159,7 +157,7 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                         {tracker.category && (
                             <span
                                 className={cn(
-                                    "inline-block px-2 py-1 text-[10px] sm:text-xs font-medium rounded-full mt-2",
+                                    "inline-block max-w-full truncate align-top px-2 py-1 text-[10px] sm:text-xs font-medium rounded-full mt-2",
                                     "bg-black/10 text-black backdrop-blur-sm border border-black/10 dark:bg-white/20 dark:text-white dark:border-white/10"
                                 )}
                             >
@@ -173,7 +171,7 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                 <div className="mt-auto flex items-end justify-between gap-4">
                     <div className="flex-1 min-w-0">
                         <p className={cn(
-                            "text-[10px] sm:text-xs font-medium uppercase tracking-wider",
+                            "text-[10px] sm:text-xs font-medium uppercase tracking-wider truncate",
                             secondaryTextClass,
                             "text-shadow-none dark:text-shadow-sm"
                         )}>
@@ -181,12 +179,12 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                         </p>
                     </div>
 
-                    <div className="flex flex-col items-end shrink-0 gap-1">
+                    <div className="flex flex-col items-end shrink-0 max-w-[70%] gap-1 min-w-0">
                         {/* Single unit or multi-unit display */}
                         {sortedParts.length === 1 ? (
                             <div className="flex flex-col items-end">
                                 <div className={cn(
-                                    "font-bold tabular-nums leading-[0.85] text-right text-4xl sm:text-6xl",
+                                    "font-bold tabular-nums leading-[0.85] text-right text-4xl sm:text-6xl break-all",
                                     primaryTextClass,
                                     "text-shadow-none dark:text-shadow-lg"
                                 )}>
@@ -206,9 +204,9 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                         ) : (multilineParts && multilineParts.length === 2 && (
                             <>
                                 {/* High priority item on top */}
-                                <div className="flex items-baseline gap-1 justify-end">
+                                <div className="flex flex-wrap items-baseline gap-x-1 justify-end">
                                     <div className={cn(
-                                        "font-bold tabular-nums leading-[0.85] text-right text-4xl sm:text-6xl",
+                                        "font-bold tabular-nums leading-[0.85] text-right text-4xl sm:text-6xl break-all",
                                         primaryTextClass,
                                         "text-shadow-none dark:text-shadow-lg"
                                     )}>
@@ -224,7 +222,7 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                                 </div>
 
                                 {/* Remaining items on same line */}
-                                <div className="flex items-baseline gap-1 justify-end">
+                                <div className="flex flex-wrap items-baseline gap-x-1 justify-end">
                                     <span className={cn("font-medium text-xs sm:text-sm mr-1", tertiaryTextClass)}>
                                         and
                                     </span>
@@ -253,9 +251,9 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                             <>
                                 {/* Manual logic or > 2 parts logic (existing fallback) */}
                                 {/* High priority item on top */}
-                                <div className="flex items-baseline gap-1 justify-end">
+                                <div className="flex flex-wrap items-baseline gap-x-1 justify-end">
                                     <div className={cn(
-                                        "font-bold tabular-nums leading-[0.85] text-right text-4xl sm:text-6xl",
+                                        "font-bold tabular-nums leading-[0.85] text-right text-4xl sm:text-6xl break-all",
                                         primaryTextClass,
                                         "text-shadow-none dark:text-shadow-lg"
                                     )}>
@@ -271,7 +269,7 @@ export function TrackerCard({ tracker, onClick }: TrackerCardProps) {
                                 </div>
 
                                 {/* Remaining items on same line */}
-                                <div className="flex items-baseline gap-1 justify-end">
+                                <div className="flex flex-wrap items-baseline gap-x-1 justify-end">
                                     {/* "OR" prefix for 2 items, or "OR" + slash separator for 3 items */}
                                     {sortedParts.length >= 2 && !isAuto && (
                                         <span className={cn("text-[10px] sm:text-xs font-medium", tertiaryTextClass)}>

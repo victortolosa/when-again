@@ -104,6 +104,7 @@ export function useNotifications(
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- initial check on mount; subscribes to interval
         setPermissionStatus(getPermissionStatus());
     }, []);
 
@@ -139,6 +140,7 @@ export function useNotifications(
     }, [trackers, reminders]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- initial check on mount; subscribes to interval
         check();
         intervalRef.current = setInterval(check, CHECK_INTERVAL);
         return () => {

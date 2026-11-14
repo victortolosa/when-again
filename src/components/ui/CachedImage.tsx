@@ -1,13 +1,66 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { refreshFirebaseDownloadUrl } from '@/lib/storage';
 import { getFirebaseStorage } from '@/lib/firebase';
 import { ref, getDownloadURL } from 'firebase/storage';
 
-// Global session cache to track loaded images
-const imageCache = new Set<string>();
+// Session-wide caches so remounts (tab switches, re-sorts, list re-renders)
+// show images instantly instead of re-fetching and flashing.
+const MAX_CACHED = 100;
+const blobCache = new Map<string, string>(); // src -> object URL
+const inflight = new Map<string, Promise<string | null>>();
+const shownUrls = new Set<string>(); // object URLs already displayed once
+
+function remember(src: string, objectUrl: string) {
+    blobCache.set(src, objectUrl);
+    if (blobCache.size > MAX_CACHED) {
+        const oldest = blobCache.keys().next().value as string;
+        const oldUrl = blobCache.get(oldest);
+        blobCache.delete(oldest);
+        if (oldUrl) {
+            shownUrls.delete(oldUrl);
+            URL.revokeObjectURL(oldUrl);
+        }
+    }
+}
+
+async function loadImage(src: string): Promise<string | null> {
+    const hit = blobCache.get(src);
+    if (hit) return hit;
+    const pending = inflight.get(src);
+    if (pending) return pending;
+
+    const task = (async () => {
+        try {
+            let candidateUrl = src;
+            // Storage paths need resolving to a download URL first
+            if (!src.startsWith('http') && !src.startsWith('blob:') && !src.startsWith('data:')) {
+                try {
+                    candidateUrl = await getDownloadURL(ref(getFirebaseStorage(), src));
+                } catch (err: unknown) {
+                    if ((err as { code?: string })?.code !== 'storage/object-not-found') {
+                        console.error('Failed to resolve path:', err);
+                    }
+                    return null;
+                }
+            }
+            // Fetch as blob so 403/404 fail quietly instead of showing a broken image
+            const response = await fetch(candidateUrl, { method: 'GET', mode: 'cors' });
+            if (!response.ok) return null;
+            const objectUrl = URL.createObjectURL(await response.blob());
+            remember(src, objectUrl);
+            return objectUrl;
+        } catch (err) {
+            console.warn('Silent image load failure:', err);
+            return null;
+        } finally {
+            inflight.delete(src);
+        }
+    })();
+    inflight.set(src, task);
+    return task;
+}
 
 interface CachedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
     src: string;
@@ -17,8 +70,8 @@ interface CachedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 }
 
 /**
- * A component that provides smooth fade-in transitions for images
- * and skips the animation if the image was already loaded in this session.
+ * Image that fades in once, and not at all when it was already shown this
+ * session. While a new src resolves, the previous image stays on screen.
  */
 export function CachedImage({
     src,
@@ -29,114 +82,43 @@ export function CachedImage({
     onError,
     ...props
 }: CachedImageProps) {
-    const [resolvedSrc, setResolvedSrc] = useState<string | null>(null);
-    const [isLoaded, setIsLoaded] = useState(false);
-    const [isAlreadyCached, setIsAlreadyCached] = useState(false);
-    // Track blob URLs to revoke them on unmount
-    const blobUrlRef = useRef<string | null>(null);
+    const [resolved, setResolved] = useState<{ src: string; url: string } | null>(null);
+    const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
 
-    // Cleanup blob URL on unmount or change
     useEffect(() => {
+        if (!src) return;
+        let cancelled = false;
+        loadImage(src).then((url) => {
+            if (!cancelled && url) setResolved({ src, url });
+        });
         return () => {
-            if (blobUrlRef.current) {
-                URL.revokeObjectURL(blobUrlRef.current);
-                blobUrlRef.current = null;
-            }
+            cancelled = true;
         };
-    }, [src]); // Re-run if src changes
-
-    useEffect(() => {
-        // Reset state
-        setResolvedSrc(null);
-        setIsLoaded(false);
-        setIsAlreadyCached(false);
-
-        const fetchAndCreateBlob = async (url: string) => {
-            try {
-                // If we've already validated this URL in this session, we could skip fetch?
-                // But for now, let's allow browser cache to handle the data, but use fetch to catch 403s.
-                // Note: 'no-cors' mode produces opaque response which fails blob(). 'cors' is needed.
-                // Firebase Storage supports CORS.
-                const response = await fetch(url, { method: 'GET', mode: 'cors' });
-
-                if (!response.ok) {
-                    // This catches 403 (Forbidden) and 404 (Not Found)
-                    // silently without browser console error (mostly).
-                    // console.debug('Image fetch failed:', response.status, url);
-                    return; // Stays null, no error shown
-                }
-
-                const blob = await response.blob();
-                const objectUrl = URL.createObjectURL(blob);
-
-                // Revoke old blob
-                if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
-                blobUrlRef.current = objectUrl;
-
-                setResolvedSrc(objectUrl);
-
-                const cached = imageCache.has(url);
-                setIsAlreadyCached(cached);
-                setIsLoaded(cached); // Or true immediately since we have the data?
-                // If we have the blob, it's loaded.
-                setIsLoaded(true);
-
-                imageCache.add(url);
-            } catch (err) {
-                // Network error or CORS error
-                console.warn('Silent image load failure:', err);
-            }
-        };
-
-        const resolve = async () => {
-            if (!src) return;
-
-            let candidateUrl = src;
-
-            // Handle Storage Paths
-            if (!src.startsWith('http') && !src.startsWith('blob:') && !src.startsWith('data:')) {
-                try {
-                    const storage = getFirebaseStorage();
-                    candidateUrl = await getDownloadURL(ref(storage, src));
-                } catch (err: any) {
-                    if (err?.code === 'storage/object-not-found') return;
-                    console.error('Failed to resolve path:', err);
-                    return;
-                }
-            }
-
-            // Now fetch as blob to verify access
-            await fetchAndCreateBlob(candidateUrl);
-        };
-
-        resolve();
     }, [src]);
 
-    const handleLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-        setIsLoaded(true);
-        if (onLoad) onLoad(e);
-    };
+    // Prefer the synchronous cache hit, else whatever last resolved
+    const url = blobCache.get(src) ?? resolved?.url ?? null;
+    if (!url) return null;
 
-    if (!resolvedSrc) {
-        return null;
-    }
+    const isLoaded = shownUrls.has(url) || loadedUrl === url;
 
     return (
         <div className={cn("relative w-full h-full overflow-hidden", containerClassName)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-                src={resolvedSrc}
+                src={url}
                 alt={alt}
                 className={cn(
-                    "w-full h-full object-cover transition-all duration-700 ease-out",
-                    isLoaded ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-105 blur-lg",
+                    "w-full h-full object-cover transition-[opacity,transform] duration-500 ease-out motion-reduce:transition-none",
+                    isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-[1.02]",
                     className
                 )}
-                onLoad={handleLoad}
-                onError={(e) => {
-                    // Should rarely happen with blob strategy
-                    if (onError) onError(e);
+                onLoad={(e) => {
+                    shownUrls.add(url);
+                    setLoadedUrl(url);
+                    onLoad?.(e);
                 }}
+                onError={(e) => onError?.(e)}
                 {...props}
             />
         </div>

@@ -126,7 +126,7 @@ export default function CountdownsPage() {
                         ))}
                     </div>
                 ) : (
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         {countdowns.map((tracker) => (
                             <TrackerCard
                                 key={tracker.id}

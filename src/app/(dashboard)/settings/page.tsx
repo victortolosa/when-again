@@ -6,7 +6,7 @@ import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Moon, Sun, Monitor, BellRing, CheckCircle, XCircle } from 'lucide-react';
-import { isSupported as notificationsSupported, getPermissionStatus, requestPermission } from '@/lib/notifications';
+import { getPermissionStatus, requestPermission } from '@/lib/notifications';
 import { useState, useEffect } from 'react';
 
 export default function SettingsPage() {
@@ -16,6 +16,7 @@ export default function SettingsPage() {
     const [permStatus, setPermStatus] = useState<NotificationPermission | 'unsupported'>('default');
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- read browser-only permission after hydration
         setPermStatus(getPermissionStatus());
     }, []);
 

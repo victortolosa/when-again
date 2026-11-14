@@ -190,7 +190,7 @@ export default function RemindersPage() {
                                     <h3 className="uppercase tracking-wider text-sm font-semibold">{category}</h3>
                                     <span className="text-xs bg-muted px-2 py-0.5 rounded-full">{items.length}</span>
                                 </div>
-                                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                                     {items.map(item => (
                                         <ReminderCard key={item.id} reminder={item} onEdit={handleEditReminder} onDelete={handleDeleteReminder} />
                                     ))}
@@ -199,7 +199,7 @@ export default function RemindersPage() {
                         ))}
                     </div>
                 ) : (
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         {reminders.map((reminder) => (
                             <ReminderCard key={reminder.id} reminder={reminder} onEdit={handleEditReminder} onDelete={handleDeleteReminder} />
                         ))}

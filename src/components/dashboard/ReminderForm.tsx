@@ -226,11 +226,12 @@ export function ReminderForm({
                     {trigger || <Button>+ New Memory</Button>}
                 </DialogTrigger>
             )}
-            <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
+            <DialogContent className="flex flex-col gap-0 overflow-hidden p-0 sm:max-w-md">
+                <DialogHeader className="px-6 pt-6 pb-3">
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-4">
                     <Tabs defaultValue="general" className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="general">General</TabsTrigger>
@@ -480,8 +481,9 @@ export function ReminderForm({
                             </div>
                         </TabsContent>
                     </Tabs>
+                    </div>
 
-                    <DialogFooter className="flex-col sm:flex-row gap-2 pt-2">
+                    <DialogFooter className="flex-col sm:flex-row gap-2 border-t px-6 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                         <DialogClose asChild>
                             <Button type="button" variant="outline" className="w-full sm:w-auto min-h-[44px] touch-manipulation">
                                 Cancel
